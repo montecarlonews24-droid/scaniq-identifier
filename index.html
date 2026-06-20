@@ -1486,10 +1486,20 @@ async function runScan(){
     let result;
     try{result=JSON.parse(clean);}catch{const m=clean.match(/\{[\s\S]*\}/);if(m)result=JSON.parse(m[0]);else throw new Error('Parse error. Retry.');}
     clearInterval(it);dz.classList.remove('scanning');document.getElementById('loading').classList.remove('show');
-    scanCount++;localStorage.setItem('sq4_cnt',scanCount);document.getElementById('scan-counter').textContent=scanCount;
+    try{scanCount++;localStorage.setItem('sq4_cnt',scanCount);}catch{}
+    document.getElementById('scan-counter').textContent=scanCount;
     const item={id:Date.now(),thumb:pi.src,result,ts:new Date().toISOString(),cat:selCat};
-    if(document.getElementById('t-hist').classList.contains('on')){hist.unshift(item);if(hist.length>20)hist=hist.slice(0,20);localStorage.setItem('sq4_hist',JSON.stringify(hist));}
-    renderResult(result,needsLive,selCat);renderRecentHist();
+    renderResult(result,needsLive,selCat);
+    if(document.getElementById('t-hist').classList.contains('on')){
+      hist.unshift(item);
+      if(hist.length>20)hist=hist.slice(0,20);
+      let saved=false;
+      while(!saved){
+        try{localStorage.setItem('sq4_hist',JSON.stringify(hist));saved=true;}
+        catch{if(hist.length>1){hist=hist.slice(0,Math.ceil(hist.length/2));}else{hist=[];saved=true;}}
+      }
+    }
+    renderRecentHist();
     document.getElementById('btn-scan').disabled=false;
   }catch(err){
     clearInterval(it);dz.classList.remove('scanning');
@@ -1670,7 +1680,7 @@ function logFood(){
   const today=new Date().toDateString();
   foodLog=foodLog.filter(x=>x.date===today);
   foodLog.push({date:today,name:lastNutriResult.dish_name||'Food',cal:lastNutriResult.calories||0,ts:Date.now()});
-  localStorage.setItem('sq4_food_log',JSON.stringify(foodLog));
+  try{localStorage.setItem('sq4_food_log',JSON.stringify(foodLog));}catch{if(foodLog.length>1){foodLog=foodLog.slice(0,Math.ceil(foodLog.length/2));try{localStorage.setItem('sq4_food_log',JSON.stringify(foodLog));}catch{}}}
   renderFoodLog();
   const btn=document.querySelector('.nutri-log-btn');if(btn)btn.textContent='✅ Added!';
 }
@@ -2057,7 +2067,7 @@ async function decodeQR(){
 
 /* ===== COLLECTIONS ===== */
 let collections=JSON.parse(localStorage.getItem('sq4_coll')||'[]');
-function saveColl(){localStorage.setItem('sq4_coll',JSON.stringify(collections));}
+function saveColl(){try{localStorage.setItem('sq4_coll',JSON.stringify(collections));}catch{}}
 function renderCollections(){
   const g=document.getElementById('coll-grid');if(!g)return;g.innerHTML='';
   collections.forEach((c,i)=>{
