@@ -94,7 +94,10 @@ module.exports = async (req, res) => {
 
     const geminiBody = {
       contents,
-      generationConfig: { maxOutputTokens: max_tokens || 2000 },
+      // Grounded (Live Price Feed) responses tend to run longer because the
+      // model has to weave in search results before closing out the JSON,
+      // so give them extra headroom to avoid truncating mid-object.
+      generationConfig: { maxOutputTokens: hasTools ? Math.max(max_tokens || 2000, 3500) : (max_tokens || 2000) },
     };
 
     // Translate the Anthropic web_search tool into Gemini's Google Search grounding
