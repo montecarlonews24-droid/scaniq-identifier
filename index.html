@@ -627,9 +627,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 <div class="page" id="page-settings">
   <div class="page-title">SYSTEM</div>
   <div class="api-wrap">
-    <div class="api-lbl">Anthropic API Key</div>
-    <input class="api-inp" id="api-key" type="password" placeholder="sk-ant-...">
-    <div class="api-hint">// stored locally · never transmitted</div>
+    <div class="api-lbl">⚡ Connected via SCANIQ Cloud — no setup needed</div>
   </div>
   <div class="settings-list">
     <div class="s-item"><div><div class="s-label">Live Price Feed</div><div class="s-sub">Gold, oil, metals — real-time web search</div></div><button class="tog on" id="t-live" onclick="this.classList.toggle('on')"></button></div>
@@ -657,8 +655,7 @@ let imgB64=null,imgMime='image/jpeg',selCat='auto';
 let hist=JSON.parse(localStorage.getItem('sq4_hist')||'[]');
 let scanCount=parseInt(localStorage.getItem('sq4_cnt')||'0');
 document.getElementById('scan-counter').textContent=scanCount;
-document.getElementById('api-key').value=localStorage.getItem('sq4_key')||'';
-document.getElementById('api-key').addEventListener('change',e=>localStorage.setItem('sq4_key',e.target.value.trim()));
+const API_PROXY='https://scaniq-identifier.vercel.app/api/scan';
 const ARCHIVE_DB = {
   animals: {
     sources:[
@@ -1462,8 +1459,6 @@ function buildPrompt(cat){
 
 async function runScan(){
   if(!imgB64)return;
-  const key=document.getElementById('api-key').value.trim()||localStorage.getItem('sq4_key')||'';
-  if(!key){showErr('Add Anthropic API key in System settings.');return;}
   const deep=document.getElementById('t-deep').classList.contains('on');
   document.getElementById('loading').classList.add('show');
   document.getElementById('results-wrap').style.display='none';
@@ -1481,8 +1476,8 @@ async function runScan(){
       {type:'text',text:buildPrompt(selCat)}
     ]}]};
     if(needsLive)body.tools=[{type:'web_search_20250305',name:'web_search'}];
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify(body)});
     if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'API Error '+resp.status);}
     const data=await resp.json();
@@ -1610,8 +1605,6 @@ function loadNutriImg(f){
   };r.readAsDataURL(f);
 }
 async function runNutriScan(){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key){showErrBox('err-nutri','Add Anthropic API key in System settings.');return;}
   document.getElementById('loading-nutri').classList.add('show');
   document.getElementById('btn-nutri').disabled=true;
   try{
@@ -1619,8 +1612,8 @@ async function runNutriScan(){
       {type:'image',source:{type:'base64',media_type:nutriMime,data:nutriB64}},
       {type:'text',text:'You are a professional nutritionist AI. Analyze this food image and return PURE JSON ONLY:\n{"food_identified":true,"dish_name":"","cuisine":"","serving_estimate":"e.g. 1 plate ~350g","calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"fiber_g":0,"sugar_g":0,"sodium_mg":0,"vitamins":[""],"health_score":0,"health_label":"Excellent|Good|Moderate|Poor","ingredients_detected":[""],"allergens":[""],"diet_tags":["Vegan","Gluten-Free","etc"],"tips":["healthy tip 1","tip 2"],"disclaimer":"Estimates may vary. Consult a dietitian for medical advice."}\nhealth_score 0-100. If no food visible set food_identified:false.'}
     ]}]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
@@ -1711,8 +1704,6 @@ function loadOCRImg(f){
   };r.readAsDataURL(f);
 }
 async function runOCR(){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key){showErrBox('err-ocr','Add Anthropic API key in System settings.');return;}
   document.getElementById('loading-ocr').classList.add('show');
   document.getElementById('btn-ocr').disabled=true;
   try{
@@ -1720,8 +1711,8 @@ async function runOCR(){
       {type:'image',source:{type:'base64',media_type:ocrMime,data:ocrB64}},
       {type:'text',text:'You are an expert OCR and document analysis AI. Extract ALL text from this image and return PURE JSON ONLY:\n{"extracted_text":"full text verbatim preserving line breaks","summary":"2-4 sentence summary of the document","key_points":["point 1","point 2","point 3"],"todos":["actionable item 1","item 2"],"doc_type":"Invoice|Letter|Note|Article|Form|Receipt|Book|Other","language_detected":"English|Arabic|etc","word_count":0}\nIf no text found set extracted_text to empty string.'}
     ]}]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
@@ -1752,8 +1743,6 @@ function switchOcrTab(name,el){
 function copyOCR(){navigator.clipboard.writeText(ocrExtractedText).then(()=>{const b=document.querySelector('.ocr-act');if(b)b.textContent='✅ Copied!';setTimeout(()=>{if(b)b.textContent='📋 Copy All';},2000);});}
 function shareOCR(){if(navigator.share)navigator.share({text:ocrExtractedText});else navigator.clipboard.writeText(ocrExtractedText);}
 async function runTranslate(){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key){alert('Add API key in System settings.');return;}
   if(!ocrExtractedText){alert('Extract text first.');return;}
   const lang=document.getElementById('translate-lang').value;
   const wrap=document.getElementById('ocr-translate-content');
@@ -1761,8 +1750,8 @@ async function runTranslate(){
   wrap.textContent='';loading.classList.add('show');
   try{
     const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:`Translate the following text to ${lang}. Return ONLY the translated text, no explanations:\n\n${ocrExtractedText}`}]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let translated='';for(const b of(data.content||[]))if(b.type==='text')translated+=b.text;
@@ -1790,8 +1779,6 @@ function buildOCRChat(ocrData){
 }
 let _ocrChatHistory=[];
 async function sendOCRChat(preset){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key)return;
   const inp=document.getElementById('ocr-chat-inp');
   const msg=preset||(inp?inp.value.trim():'');
   if(!msg)return;
@@ -1806,8 +1793,8 @@ async function sendOCRChat(preset){
   try{
     const context=window._ocrChatContext||[];
     const body={model:'claude-sonnet-4-6',max_tokens:1000,messages:[...context,..._ocrChatHistory]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await resp.json();
     let reply='';for(const b of(data.content||[]))if(b.type==='text')reply+=b.text;
     _ocrChatHistory.push({role:'assistant',content:reply});
@@ -1838,8 +1825,6 @@ function renderScanChat(result,mode){
   wrap.classList.add('show');
 }
 async function sendScanChat(preset){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key)return;
   const inp=document.getElementById('scan-chat-inp');
   const msg=preset||(inp?inp.value.trim():'');
   if(!msg)return;
@@ -1853,8 +1838,8 @@ async function sendScanChat(preset){
   scanChatHistory.push({role:'user',content:msg});
   try{
     const body={model:'claude-sonnet-4-6',max_tokens:800,messages:[{role:'user',content:scanChatContext},{role:'assistant',content:'Understood! I have the full analysis ready. Ask me anything.'},...scanChatHistory]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await resp.json();
     let reply='';for(const b of(data.content||[]))if(b.type==='text')reply+=b.text;
     scanChatHistory.push({role:'assistant',content:reply});
@@ -1886,8 +1871,6 @@ function loadFaceImg(f){
   };r.readAsDataURL(f);
 }
 async function runFaceScan(){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key){showErrBox('err-face','Add Anthropic API key in System settings.');return;}
   document.getElementById('loading-face').classList.add('show');
   document.getElementById('btn-face').disabled=true;
   document.getElementById('drop-zone-face').classList.add('scanning');
@@ -1896,8 +1879,8 @@ async function runFaceScan(){
       {type:'image',source:{type:'base64',media_type:faceMime,data:faceB64}},
       {type:'text',text:'You are an expert facial aesthetics AI. Analyze this face image and return PURE JSON ONLY — no markdown:\n{"face_found":true,"gender_presentation":"Male|Female|Androgynous","estimated_age_range":"20-25","symmetry_score":0,"attractiveness_score":0,"facial_features":{"face_shape":"","eye_description":"","nose_type":"","lip_type":"","skin_quality":"","jawline":""},"aesthetic_metrics":[{"label":"Facial Symmetry","score":0,"note":""},{"label":"Golden Ratio Alignment","score":0,"note":""},{"label":"Skin Quality","score":0,"note":""},{"label":"Feature Harmony","score":0,"note":""},{"label":"Expression Energy","score":0,"note":""}],"strengths":["","",""],"overall_verdict":"short descriptive phrase","disclaimer":"For entertainment purposes only. Not a medical assessment."}\nAll scores 0-100. If no face found set face_found:false.'}
     ]}]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
@@ -1938,8 +1921,6 @@ function loadFmImg(n,f){
   };r.readAsDataURL(f);
 }
 async function runFaceMatch(){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key){showErrBox('err-fm','Add Anthropic API key in System settings.');return;}
   document.getElementById('loading-fm').classList.add('show');
   document.getElementById('btn-fm').disabled=true;
   try{
@@ -1948,8 +1929,8 @@ async function runFaceMatch(){
       {type:'image',source:{type:'base64',media_type:fm2Mime,data:fm2B64}},
       {type:'text',text:'You are a facial comparison AI. Analyze BOTH faces and return PURE JSON ONLY:\n{"similarity_score":0,"relationship_prediction":"Siblings|Parent-Child|Twins|Unrelated|Cousins","confidence":"High|Medium|Low","shared_features":["","",""],"differences":["","",""],"person_a":{"dominant_feature":"","face_shape":""},"person_b":{"dominant_feature":"","face_shape":""},"verdict":"short description","disclaimer":"For entertainment only. Not DNA or identity verification."}\nsimilarity_score 0-100.'}
     ]}]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
@@ -1987,8 +1968,6 @@ function loadAuthImg(f){
   };r.readAsDataURL(f);
 }
 async function runAuthScan(){
-  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
-  if(!key){showErrBox('err-auth','Add Anthropic API key in System settings.');return;}
   document.getElementById('loading-auth').classList.add('show');
   document.getElementById('btn-auth').disabled=true;
   document.getElementById('drop-zone-auth').classList.add('scanning');
@@ -1997,8 +1976,8 @@ async function runAuthScan(){
       {type:'image',source:{type:'base64',media_type:authMime,data:authB64}},
       {type:'text',text:'You are an expert authenticity and counterfeit detection AI. Return PURE JSON ONLY:\n{"item_identified":"","authenticity_verdict":"GENUINE|FAKE|UNCERTAIN","confidence_score":0,"authenticity_markers":{"positive":[""],"suspicious":[""]},"red_flags":[""],"recommendation":"Buy safely|Avoid|Get physical inspection","detail_assessment":"2-3 sentences","disclaimer":"Visual analysis only. Physical inspection recommended for high-value items."}\nconfidence_score 0-100. Check: logos, stitching, fonts, materials, holograms, serial numbers, quality.'}
     ]}]};
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const resp=await fetch(API_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
