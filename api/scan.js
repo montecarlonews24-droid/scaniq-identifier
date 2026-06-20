@@ -23,6 +23,18 @@ module.exports = async (req, res) => {
     // Everything else uses Flash (fast, 1500 free requests/day).
     const model = (max_tokens && max_tokens >= 4000) ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
 
+    const hasTools = Array.isArray(tools) && tools.some(t => t.type === 'web_search_20250305');
+
+    // Detect whether the prompt expects a strict JSON object back (every
+    // SCANIQ prompt that wants structured data says "PURE JSON ONLY").
+    // Free-form chat/translate prompts never contain this marker.
+    const wantsJson = (messages || []).some(m => {
+      const text = typeof m.content === 'string'
+        ? m.content
+        : (m.content || []).map(b => b.text || '').join(' ');
+      return /\bJSON\b/.test(text);
+    });
+
     // Translate Anthropic-style messages[] into Gemini contents[]
     const contents = (messages || []).map(m => {
       const role = m.role === 'assistant' ? 'model' : 'user';
@@ -46,8 +58,16 @@ module.exports = async (req, res) => {
     };
 
     // Translate the Anthropic web_search tool into Gemini's Google Search grounding
-    if (Array.isArray(tools) && tools.some(t => t.type === 'web_search_20250305')) {
+    if (hasTools) {
       geminiBody.tools = [{ google_search: {} }];
+    }
+
+    // Gemini's native structured-output mode guarantees syntactically valid
+    // JSON, eliminating the "Expected ',' or '}'" parse errors that happen
+    // when the model free-types JSON and forgets to escape a quote.
+    // Not compatible with tools/grounding, so only apply when no tools are used.
+    if (wantsJson && !hasTools) {
+      geminiBody.generationConfig.responseMimeType = 'application/json';
     }
 
     const upstream = await fetch(
