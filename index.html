@@ -63,7 +63,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .drop-icon{font-size:2.8rem;margin-bottom:10px;display:block;animation:float 3s ease-in-out infinite;}
 .drop-title{font-family:'Orbitron',monospace;font-size:.8rem;color:var(--cyan);letter-spacing:.1em;margin-bottom:5px;}
 .drop-sub{font-size:.74rem;color:var(--text3);line-height:1.6;}
-#file-input{display:none;}
+#file-input,#file-input-cam,#fi-face-cam,#fi-auth-cam,#fi-nutri-cam,#fi-ocr-cam{display:none;}
 /* BUTTONS */
 .action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:480px;}
 .btn{padding:13px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.86rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
@@ -363,7 +363,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
     <input type="file" id="file-input-cam" accept="image/*" capture="environment">
     <div class="action-row">
       <button class="btn btn-ghost" onclick="document.getElementById('file-input').click()">&#128193; Gallery</button>
-      <button class="btn btn-ghost" onclick="openCamera()">&#128247; Camera</button>
+      <label for="file-input-cam" class="btn btn-ghost">&#128247; Camera</label>
       <button class="btn btn-scan" id="btn-scan" onclick="runScan()" disabled>&#9889;&nbsp; SCAN NOW</button>
     </div>
   </div>
@@ -409,9 +409,10 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
         </div>
       </div>
       <input type="file" id="fi-face" accept="image/*">
+      <input type="file" id="fi-face-cam" accept="image/*" capture="environment">
       <div class="action-row">
         <button class="btn btn-ghost" onclick="document.getElementById('fi-face').click()">📁 Gallery</button>
-        <button class="btn btn-ghost" onclick="openFaceCamera()">📷 Camera</button>
+        <label for="fi-face-cam" class="btn btn-ghost">📷 Camera</label>
         <button class="btn btn-scan" id="btn-face" onclick="runFaceScan()" disabled>⚡&nbsp; ANALYZE FACE</button>
       </div>
     </div>
@@ -455,9 +456,10 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
         </div>
       </div>
       <input type="file" id="fi-auth" accept="image/*">
+      <input type="file" id="fi-auth-cam" accept="image/*" capture="environment">
       <div class="action-row">
         <button class="btn btn-ghost" onclick="document.getElementById('fi-auth').click()">📁 Gallery</button>
-        <button class="btn btn-ghost" onclick="openAuthCamera()">📷 Camera</button>
+        <label for="fi-auth-cam" class="btn btn-ghost">📷 Camera</label>
         <button class="btn btn-scan" id="btn-auth" onclick="runAuthScan()" disabled>🕵️&nbsp; CHECK AUTHENTICITY</button>
       </div>
     </div>
@@ -480,9 +482,10 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
         </div>
       </div>
       <input type="file" id="fi-nutri" accept="image/*">
+      <input type="file" id="fi-nutri-cam" accept="image/*" capture="environment">
       <div class="action-row">
         <button class="btn btn-ghost" onclick="document.getElementById('fi-nutri').click()">📁 Gallery</button>
-        <button class="btn btn-ghost" onclick="openNutriCamera()">📷 Camera</button>
+        <label for="fi-nutri-cam" class="btn btn-ghost">📷 Camera</label>
         <button class="btn btn-scan" id="btn-nutri" onclick="runNutriScan()" disabled>🍽️&nbsp; ANALYZE FOOD</button>
       </div>
     </div>
@@ -518,9 +521,10 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
         </div>
       </div>
       <input type="file" id="fi-ocr" accept="image/*">
+      <input type="file" id="fi-ocr-cam" accept="image/*" capture="environment">
       <div class="action-row">
         <button class="btn btn-ghost" onclick="document.getElementById('fi-ocr').click()">📁 Gallery</button>
-        <button class="btn btn-ghost" onclick="openOCRCamera()">📷 Camera</button>
+        <label for="fi-ocr-cam" class="btn btn-ghost">📷 Camera</label>
         <button class="btn btn-scan" id="btn-ocr" onclick="runOCR()" disabled>📄&nbsp; EXTRACT TEXT</button>
       </div>
     </div>
@@ -586,7 +590,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
       <input type="file" id="fi-qr" accept="image/*" capture="environment">
       <div class="action-row">
         <button class="btn btn-ghost" onclick="document.getElementById('fi-qr').click()">📁 Gallery</button>
-        <button class="btn btn-ghost" onclick="openQRCamera()">📷 Camera</button>
+        <label for="fi-qr" class="btn btn-ghost">📷 Camera</label>
         <button class="btn btn-scan" id="btn-qr" onclick="decodeQR()" disabled>📷&nbsp; DECODE</button>
       </div>
     </div>
@@ -1040,7 +1044,7 @@ const ARCHIVE_DB = {
   },
   aviation: {
     sources:[
-      {icon:'✈️',name:'Jane's All the World's Aircraft',url:'janes.com/aircraft',info:'Aircraft specifications, performance data, operator lists, production numbers'},
+      {icon:'✈️',name:"Jane's All the World's Aircraft",url:'janes.com/aircraft',info:'Aircraft specifications, performance data, operator lists, production numbers'},
       {icon:'📊',name:'ch-aviation Fleet Database',url:'ch-aviation.com',info:'Global airline fleets, aircraft age, lease data, route networks'},
       {icon:'💰',name:'AVAC Aircraft Valuations',url:'avac.us',info:'Commercial aircraft appraisals, residual value forecasts, lease rates'},
       {icon:'🛫',name:'Planespotters.net',url:'planespotters.net',info:'Individual aircraft histories, registration data, photo archives'},
@@ -1127,7 +1131,7 @@ const ARCHIVE_DB = {
   },
   maritime: {
     sources:[
-      {icon:'🚢',name:'Lloyd's Register of Shipping',url:'lr.org',info:'Ship classification, tonnage records, safety certificates, vessel histories'},
+      {icon:'🚢',name:"Lloyd's Register of Shipping",url:'lr.org',info:'Ship classification, tonnage records, safety certificates, vessel histories'},
       {icon:'📊',name:'Clarksons Research',url:'clarksons.com',info:'Ship values, charter rates, newbuilding prices, fleet statistics by type'},
       {icon:'🗺️',name:'MarineTraffic AIS Data',url:'marinetraffic.com',info:'Vessel tracking, port calls, speed data, route histories'},
       {icon:'💰',name:'VesselsValue',url:'vesselsvalue.com',info:'Real-time ship valuations, demolition prices, sale & purchase records'},
@@ -1414,10 +1418,6 @@ function loadImg(f){
   };
   r.readAsDataURL(f);
 }
-function openCamera(){
-  const fic=document.getElementById('file-input-cam');
-  fic.click();
-}
 const ficEl=document.getElementById('file-input-cam');
 if(ficEl)ficEl.addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0]);});
 
@@ -1553,7 +1553,7 @@ function renderResult(r,isLive,cat){
 }
 
 function histHtml(h,full){
-  return'<div class="hist-item" onclick="replayResult('+h.id+')"><img class="hist-thumb" src="'+h.thumb+'" alt="" onerror="this.style.display='none'"><div class="hist-info"><div class="hist-name">'+(h.result?.name||'Unknown')+'</div><div class="hist-meta">'+(h.result?.category||'')+(full?' · '+( h.result?.overall_value_score||'?'):'')+'  '+timeAgo(h.ts)+'</div></div><div class="hist-price">'+(h.result?.price?.value||'')+'</div></div>';
+  return `<div class="hist-item" onclick="replayResult(${h.id})"><img class="hist-thumb" src="${h.thumb}" alt="" onerror="this.style.display='none'"><div class="hist-info"><div class="hist-name">${h.result?.name||'Unknown'}</div><div class="hist-meta">${h.result?.category||''}${full?' · '+(h.result?.overall_value_score||'?'):''}  ${timeAgo(h.ts)}</div></div><div class="hist-price">${h.result?.price?.value||''}</div></div>`;
 }
 function renderRecentHist(){
   const sec=document.getElementById('hist-section');
@@ -1592,7 +1592,7 @@ let nutriB64=null,nutriMime='image/jpeg';
 let foodLog=JSON.parse(localStorage.getItem('sq4_food_log')||'[]');
 let lastNutriResult=null;
 document.getElementById('fi-nutri').addEventListener('change',e=>{if(e.target.files[0])loadNutriImg(e.target.files[0]);});
-function openNutriCamera(){const fi=document.getElementById('fi-nutri');fi.setAttribute('capture','environment');fi.click();}
+document.getElementById('fi-nutri-cam').addEventListener('change',e=>{if(e.target.files[0])loadNutriImg(e.target.files[0]);});
 function loadNutriImg(f){
   nutriMime=f.type||'image/jpeg';
   const r=new FileReader();
@@ -1693,7 +1693,7 @@ function renderFoodLog(){
 /* ===== OCR + DOCUMENT SCANNER ===== */
 let ocrB64=null,ocrMime='image/jpeg',ocrExtractedText='',ocrSummary='',ocrTodos=[];
 document.getElementById('fi-ocr').addEventListener('change',e=>{if(e.target.files[0])loadOCRImg(e.target.files[0]);});
-function openOCRCamera(){const fi=document.getElementById('fi-ocr');fi.setAttribute('capture','environment');fi.click();}
+document.getElementById('fi-ocr-cam').addEventListener('change',e=>{if(e.target.files[0])loadOCRImg(e.target.files[0]);});
 function loadOCRImg(f){
   ocrMime=f.type||'image/jpeg';
   const r=new FileReader();
@@ -1868,7 +1868,7 @@ async function sendScanChat(preset){
 /* ===== FACE AI ===== */
 let faceB64=null,faceMime='image/jpeg';
 document.getElementById('fi-face').addEventListener('change',e=>{if(e.target.files[0])loadFaceImg(e.target.files[0]);});
-function openFaceCamera(){const fi=document.getElementById('fi-face');fi.setAttribute('capture','environment');fi.click();}
+document.getElementById('fi-face-cam').addEventListener('change',e=>{if(e.target.files[0])loadFaceImg(e.target.files[0]);});
 function loadFaceImg(f){
   faceMime=f.type||'image/jpeg';
   const r=new FileReader();
@@ -1969,7 +1969,7 @@ async function runFaceMatch(){
 /* ===== AUTHENTICITY ===== */
 let authB64=null,authMime='image/jpeg';
 document.getElementById('fi-auth').addEventListener('change',e=>{if(e.target.files[0])loadAuthImg(e.target.files[0]);});
-function openAuthCamera(){const fi=document.getElementById('fi-auth');fi.setAttribute('capture','environment');fi.click();}
+document.getElementById('fi-auth-cam').addEventListener('change',e=>{if(e.target.files[0])loadAuthImg(e.target.files[0]);});
 function loadAuthImg(f){
   authMime=f.type||'image/jpeg';
   const r=new FileReader();
@@ -2022,7 +2022,6 @@ async function runAuthScan(){
 /* ===== QR / BARCODE ===== */
 let qrImgFile=null;
 document.getElementById('fi-qr').addEventListener('change',e=>{if(e.target.files[0])loadQRImg(e.target.files[0]);});
-function openQRCamera(){const fi=document.getElementById('fi-qr');fi.setAttribute('capture','environment');fi.click();}
 function loadQRImg(f){
   qrImgFile=f;
   const r=new FileReader();
