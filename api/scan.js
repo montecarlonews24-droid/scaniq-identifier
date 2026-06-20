@@ -97,7 +97,7 @@ module.exports = async (req, res) => {
       // Grounded (Live Price Feed) responses tend to run longer because the
       // model has to weave in search results before closing out the JSON,
       // so give them extra headroom to avoid truncating mid-object.
-      generationConfig: { maxOutputTokens: hasTools ? Math.max(max_tokens || 2000, 3500) : (max_tokens || 2000) },
+      generationConfig: { maxOutputTokens: wantsJson ? Math.max(max_tokens || 2000, 3500) : (max_tokens || 2000) },
     };
 
     // Translate the Anthropic web_search tool into Gemini's Google Search grounding
@@ -106,11 +106,14 @@ module.exports = async (req, res) => {
     }
 
     // Gemini's native structured-output mode guarantees syntactically valid
-    // JSON. Not compatible with tools/grounding on gemini-2.5 models, so
-    // only apply when no tools are used (the tools+JSON case is covered by
-    // the repair pass below instead).
-    if (wantsJson && !hasTools) {
+    // JSON, but it cannot be combined with tools/grounding on gemini-2.5
+    // models. JSON reliability matters far more than live-search grounding,
+    // so whenever the prompt expects JSON we always use JSON mode and never
+    // attach tools — this is what eliminates the malformed-JSON errors for
+    // good, even for Live Price Feed scans.
+    if (wantsJson) {
       geminiBody.generationConfig.responseMimeType = 'application/json';
+      delete geminiBody.tools;
     }
 
     const upstream = await fetch(
