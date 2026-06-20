@@ -1349,6 +1349,7 @@ const TIERS=[
   {label:'&#127963; CULTURE & HERITAGE',tcls:'t5',keys:['religion','sociology','mythology','flags','crafts','marine','weapons','ads','paranormal']},
 ];
 let globalRank=1;
+const cg=document.getElementById('cats-grid');
 TIERS.forEach(tier=>{
   /* Tier label spanning all 3 cols */
   const lbl=document.createElement('div');
@@ -1364,7 +1365,7 @@ TIERS.forEach(tier=>{
     d.className='cat-card '+tier.tcls;
     d.innerHTML='<div class="cat-rank">#'+rank+'</div><div class="be">'+cat.e+'</div><div class="cn">'+cat.n+'</div>';
     d.onclick=()=>{
-      switchPage('scan',document.querySelector('.nav-item'));
+      sp('scan',document.querySelector('.nav-btn'));
       document.querySelectorAll('.cat-chip').forEach(ch=>ch.classList.remove('active'));
       const chip=document.querySelector('[data-cat="'+cat.key+'"]');
       if(chip){chip.classList.add('active');chip.scrollIntoView({behavior:'smooth',inline:'center'});}
@@ -1376,6 +1377,7 @@ TIERS.forEach(tier=>{
 
 /* Build archive info page */
 const ail=document.getElementById('archive-info-list');
+if(ail){
 CATS.forEach(c=>{
   const arc=ARCHIVE_DB[c.key];
   if(!arc)return;
@@ -1385,6 +1387,7 @@ CATS.forEach(c=>{
   div.innerHTML='<div class="arc-info-cat">'+c.e+' '+c.key.toUpperCase()+'</div><div class="arc-info-title">'+c.n+'</div><div class="arc-info-sources">'+tags+'</div>';
   ail.appendChild(div);
 });
+}
 
 /* ===== NAV ===== */
 
@@ -2111,7 +2114,8 @@ function openCollection(i){
 function showErrBox(id,msg){const b=document.getElementById(id);if(!b)return;if(!msg){b.classList.remove('show');b.textContent='';return;}b.textContent='ERROR // '+msg;b.classList.add('show');}
 
 /* patch sp for collections */
-const _sp0=sp;function sp(n,el){_sp0(n,el);if(n==='coll')renderCollections();}
+const _sp0=sp;
+sp=function(n,el){_sp0(n,el);if(n==='coll')renderCollections();};
 </script>
 </body>
 </html>
