@@ -360,6 +360,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
       <div class="tgt" id="tgt"><div class="tgt-h"></div><div class="tgt-v"></div></div>
     </div>
     <input type="file" id="file-input" accept="image/*">
+    <input type="file" id="file-input-cam" accept="image/*" capture="environment">
     <div class="action-row">
       <button class="btn btn-ghost" onclick="document.getElementById('file-input').click()">&#128193; Gallery</button>
       <button class="btn btn-ghost" onclick="openCamera()">&#128247; Camera</button>
@@ -1413,7 +1414,12 @@ function loadImg(f){
   };
   r.readAsDataURL(f);
 }
-function openCamera(){fi.setAttribute('capture','environment');fi.click();}
+function openCamera(){
+  const fic=document.getElementById('file-input-cam');
+  fic.click();
+}
+const ficEl=document.getElementById('file-input-cam');
+if(ficEl)ficEl.addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0]);});
 
 const cs=document.getElementById('cat-scroll');
 function mkChip(key,e,n){
