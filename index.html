@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SCANIQ — Universal Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#02040a; --deep:#060c1a; --card:#0a1628; --card2:#0d1f35;
+  --rim:#1a3a5c; --rim2:#0e2a44;
+  --gold:#c9a84c; --gold2:#f0d080; --gold-dim:#6b5520;
+  --cyan:#00e5ff; --cyan2:#80f4ff; --cyan-dim:#003844;
+  --violet:#7c3aed; --violet2:#a78bfa;
+  --green:#00ff9f; --red:#ff4466;
+  --text:#e8f4ff; --text2:#8ab0cc; --text3:#4a6a8a;
+  --r:14px; --r2:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;background:var(--void);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(0,229,255,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 30% at 80% 60%,rgba(124,58,237,.05) 0%,transparent 50%),radial-gradient(ellipse 50% 30% at 20% 80%,rgba(201,168,76,.04) 0%,transparent 50%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.012) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
+.page,header,.bottom-nav{position:relative;z-index:1;}
+@keyframes scanline{0%{top:-2px;opacity:1}100%{top:100%;opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fillBar{from{width:0}to{width:var(--tw)}}
+@keyframes starPop{0%{transform:scale(0);opacity:0}70%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 8px rgba(0,229,255,.5))}50%{filter:drop-shadow(0 0 18px rgba(0,229,255,.9))}}
+@keyframes rimAnim{0%,100%{box-shadow:0 0 0 1px var(--rim)}50%{box-shadow:0 0 0 1px var(--cyan),0 0 16px rgba(0,229,255,.15)}}
+/* HEADER */
+header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,4,10,.88);backdrop-filter:blur(24px);border-bottom:1px solid rgba(0,229,255,.1);}
+.logo{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;letter-spacing:.14em;background:linear-gradient(135deg,var(--cyan),var(--gold),var(--cyan2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--text3);letter-spacing:.28em;margin-top:1px;}
+.scan-pill{font-family:'JetBrains Mono',monospace;font-size:.65rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.28);color:var(--gold);padding:4px 12px;border-radius:50px;display:flex;align-items:center;gap:5px;}
+.scan-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;}
+/* PAGES */
+.page{display:none;padding-bottom:86px;}
+.page.active{display:block;animation:fadeUp .35s ease;}
+.page-title{padding:22px 20px 4px;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--cyan);letter-spacing:.06em;}
+.page-sub{padding:0 20px 14px;font-size:.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+/* DROP ZONE */
+.scanner-wrap{padding:18px 20px 0;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.drop-zone{width:100%;max-width:480px;aspect-ratio:4/3;background:var(--card);border:1px solid var(--rim);border-radius:20px;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;animation:rimAnim 4s ease-in-out infinite;}
+.drop-zone:hover{border-color:var(--cyan);box-shadow:0 0 24px rgba(0,229,255,.2);}
+.drop-zone.has-image{border-color:var(--violet2);animation:none;}
+.cb{position:absolute;width:24px;height:24px;}
+.cb.tl{top:10px;left:10px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan);}
+.cb.tr{top:10px;right:10px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+.cb.bl{bottom:10px;left:10px;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan);}
+.cb.br{bottom:10px;right:10px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+.tgt{position:absolute;width:52px;height:52px;border:1px solid rgba(0,229,255,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.tgt::before{content:'';position:absolute;width:34px;height:34px;border:1px solid rgba(0,229,255,.12);border-radius:50%;}
+.tgt-h{position:absolute;width:16px;height:1px;background:rgba(0,229,255,.35);}
+.tgt-v{position:absolute;width:1px;height:16px;background:rgba(0,229,255,.35);}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),var(--cyan2),var(--cyan),transparent);box-shadow:0 0 10px var(--cyan);top:-2px;pointer-events:none;display:none;}
+.drop-zone.scanning .scan-line{display:block;animation:scanline 1.8s ease-in-out infinite;}
+#preview-img{width:100%;height:100%;object-fit:cover;border-radius:18px;display:none;}
+.drop-ph{text-align:center;padding:20px;}
+.drop-icon{font-size:2.8rem;margin-bottom:10px;display:block;animation:float 3s ease-in-out infinite;}
+.drop-title{font-family:'Orbitron',monospace;font-size:.8rem;color:var(--cyan);letter-spacing:.1em;margin-bottom:5px;}
+.drop-sub{font-size:.74rem;color:var(--text3);line-height:1.6;}
+#file-input{display:none;}
+/* BUTTONS */
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:480px;}
+.btn{padding:13px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.86rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
+.btn-ghost{background:rgba(26,58,92,.35);color:var(--text2);border:1px solid var(--rim);}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn-scan{grid-column:1/-1;background:linear-gradient(135deg,rgba(0,229,255,.07),rgba(0,229,255,.03));border:1px solid var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-weight:700;font-size:.85rem;letter-spacing:.12em;padding:15px;box-shadow:0 0 18px rgba(0,229,255,.15);}
+.btn-scan:hover{box-shadow:0 0 30px rgba(0,229,255,.35);transform:translateY(-1px);}
+/* CHIPS */
+.cat-section{padding:0 20px 18px;}
+.sec-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);letter-spacing:.2em;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:7px;}
+.sec-label::before{content:'//';color:var(--cyan-dim);}
+.chip-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.chip-scroll::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;padding:5px 13px;border-radius:50px;background:var(--card2);border:1px solid var(--rim2);font-size:.74rem;cursor:pointer;transition:all .2s;white-space:nowrap;color:var(--text2);}
+.chip:hover{border-color:var(--cyan);color:var(--cyan);}
+.chip.active{background:rgba(0,229,255,.08);border-color:var(--cyan);color:var(--cyan);font-weight:600;box-shadow:0 0 8px rgba(0,229,255,.12);}
+/* CATS GRID */
+.cats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 14px;}
+.tier-sep{grid-column:1/-1;padding:12px 2px 5px;font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--text3);letter-spacing:.2em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
+.tier-sep span{flex:1;height:1px;background:linear-gradient(90deg,var(--rim),transparent);}
+.tier-sep.t1{color:var(--gold);}
+.tier-sep.t1 span{background:linear-gradient(90deg,var(--gold-dim),transparent);}
+.tier-sep.t2{color:var(--cyan);}
+.tier-sep.t2 span{background:linear-gradient(90deg,var(--cyan-dim),transparent);}
+.tier-sep.t3{color:var(--violet2);}
+.tier-sep.t3 span{background:linear-gradient(90deg,rgba(124,58,237,.3),transparent);}
+.tier-sep.t4{color:var(--green);}
+.tier-sep.t4 span{background:linear-gradient(90deg,rgba(0,255,159,.2),transparent);}
+.tier-sep.t5{color:var(--text2);}
+.tier-sep.t5 span{background:linear-gradient(90deg,var(--rim),transparent);}
+.cat-card{background:var(--card);border:1px solid var(--rim2);border-radius:11px;padding:11px 5px 9px;cursor:pointer;transition:all .22s;text-align:center;position:relative;overflow:hidden;}
+.cat-card::after{content:'';position:absolute;inset:0;border-radius:11px;background:radial-gradient(circle at 50% 0%,rgba(0,229,255,.07),transparent 65%);opacity:0;transition:opacity .3s;}
+.cat-card:hover::after{opacity:1;}
+.cat-card:hover{border-color:rgba(0,229,255,.35);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
+.cat-card.t1{border-color:rgba(201,168,76,.18);}
+.cat-card.t1::after{background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.09),transparent 65%);}
+.cat-card.t1:hover{border-color:rgba(201,168,76,.45);box-shadow:0 6px 20px rgba(0,0,0,.4),0 0 10px rgba(201,168,76,.12);}
+.cat-rank{position:absolute;top:4px;left:5px;font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text3);}
+.cat-card.t1 .cat-rank{color:var(--gold);opacity:.85;}
+.cat-card.t2 .cat-rank{color:var(--cyan);opacity:.65;}
+.cat-card .be{font-size:1.65rem;display:block;margin-bottom:4px;line-height:1;}
+.cat-card .cn{font-size:.64rem;font-weight:500;color:var(--text2);line-height:1.25;}
+.cat-card.t1 .cn{color:var(--text);}
+/* LOADING */
+.loading-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:44px 20px;}
+.loading-wrap.show{display:flex;animation:fadeUp .3s ease;}
+.load-ring{width:52px;height:52px;border:2px solid var(--rim);border-top-color:var(--cyan);border-right-color:var(--gold);border-radius:50%;animation:spin .85s linear infinite;}
+.load-text{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--cyan);letter-spacing:.1em;}
+.load-sub{font-size:.7rem;color:var(--text3);}
+/* ERROR */
+.err-box{background:rgba(255,68,102,.07);border:1px solid rgba(255,68,102,.25);border-radius:var(--r);margin:18px 20px;padding:13px;font-size:.8rem;color:#ff8899;display:none;}
+.err-box.show{display:block;animation:fadeUp .3s ease;}
+/* RESULT */
+#results-wrap{padding:14px 20px;display:none;animation:fadeUp .4s ease;}
+.result-card{background:var(--card);border:1px solid var(--rim);border-radius:20px;overflow:hidden;}
+.result-header{padding:15px 20px;background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(0,229,255,.07));border-bottom:1px solid var(--rim);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.id-badge{font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:600;background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.35);color:var(--cyan);padding:3px 10px;border-radius:50px;letter-spacing:.1em;}
+.conf-badge{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);margin-left:auto;}
+.result-body{padding:18px 20px;}
+.result-name{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,var(--text),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:3px;line-height:1.3;}
+.result-sub{color:var(--text3);font-size:.78rem;margin-bottom:14px;font-family:'JetBrains Mono',monospace;}
+.price-card{background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(240,208,128,.03));border:1px solid rgba(201,168,76,.22);border-radius:var(--r);padding:13px 15px;margin-bottom:14px;}
+.price-eye{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gold);letter-spacing:.2em;margin-bottom:3px;}
+.price-val{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:var(--gold2);}
+.price-note{font-size:.7rem;color:var(--text3);margin-top:3px;}
+.live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(0,229,255,.09);border:1px solid rgba(0,229,255,.22);color:var(--cyan);font-size:.6rem;padding:2px 8px;border-radius:50px;margin-top:5px;font-family:'JetBrains Mono',monospace;}
+.live-pill::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cyan);animation:pulse 1.5s infinite;}
+.est-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(74,106,138,.08);border:1px solid var(--rim);color:var(--text3);font-size:.6rem;padding:2px 8px;border-radius:50px;margin-top:5px;font-family:'JetBrains Mono',monospace;}
+.result-desc{font-size:.86rem;line-height:1.8;color:var(--text2);margin-bottom:14px;}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.det-item{background:var(--card2);border:1px solid var(--rim2);border-radius:10px;padding:9px 11px;}
+.det-label{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.15em;margin-bottom:2px;font-family:'JetBrains Mono',monospace;}
+.det-val{font-size:.8rem;font-weight:500;color:var(--text);}
+/* SCORE */
+.score-wrap{display:flex;align-items:center;gap:13px;background:var(--card2);border:1px solid var(--rim);border-radius:var(--r);padding:13px;margin-bottom:14px;}
+.score-ring{position:relative;width:66px;height:66px;flex-shrink:0;}
+.score-ring svg{transform:rotate(-90deg);}
+.sr-bg{fill:none;stroke:var(--rim2);stroke-width:5;}
+.sr-fill{fill:none;stroke-width:5;stroke-linecap:round;}
+.sr-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.92rem;font-weight:700;}
+.score-info{flex:1;}
+.score-eye{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--text3);letter-spacing:.18em;text-transform:uppercase;}
+.score-verdict{font-size:.9rem;font-weight:600;margin:3px 0;line-height:1.3;}
+.score-exp{font-size:.73rem;color:var(--text3);line-height:1.5;}
+/* MATRIX */
+.vm-wrap{margin-bottom:14px;}
+.vm-head{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--violet2);letter-spacing:.18em;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:8px;}
+.vm-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--violet),transparent);}
+.vm-row{margin-bottom:11px;}
+.vm-row-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.vm-label{font-size:.75rem;color:var(--text2);display:flex;align-items:center;gap:5px;}
+.vm-score{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:600;padding:2px 9px;border-radius:50px;}
+.vs-low{background:rgba(255,68,102,.1);color:#ff6688;}
+.vs-mid{background:rgba(245,158,11,.1);color:#f59e0b;}
+.vs-hi{background:rgba(0,255,159,.1);color:var(--green);}
+.vs-top{background:rgba(0,229,255,.1);color:var(--cyan);}
+.vm-bar-track{height:4px;background:var(--rim2);border-radius:50px;overflow:hidden;margin-bottom:3px;}
+.vm-bar-fill{height:100%;border-radius:50px;--tw:0%;animation:fillBar 1s ease forwards;}
+.vm-stars{display:flex;gap:2px;margin-bottom:3px;}
+.st{font-size:.68rem;animation:starPop .25s ease forwards;opacity:0;}
+.vm-note{font-size:.7rem;color:var(--text3);padding-left:5px;border-left:1px solid var(--rim);line-height:1.5;}
+/* LEGAL */
+.legal-card{background:rgba(255,68,102,.06);border:1px solid rgba(255,68,102,.18);border-radius:var(--r);padding:11px;margin-bottom:11px;font-size:.78rem;color:#ffaabb;line-height:1.6;}
+.legal-eye{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:#ff6688;letter-spacing:.15em;margin-bottom:3px;}
+/* MARKET */
+.market-card{background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.16);border-radius:var(--r);padding:11px;margin-bottom:14px;}
+.market-eye{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gold);letter-spacing:.15em;margin-bottom:3px;}
+/* FACTS */
+.facts-head{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--violet2);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;}
+.fact{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--rim2);font-size:.8rem;line-height:1.7;color:var(--text2);}
+.fact-dot{width:5px;height:5px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet2));flex-shrink:0;margin-top:8px;}
+/* HISTORY */
+.hist-section{padding:0 20px 20px;display:none;}
+.hist-section.show{display:block;}
+.hist-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+.hist-item{background:var(--card);border:1px solid var(--rim2);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;}
+.hist-item:hover{border-color:var(--cyan);}
+.hist-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--rim2);}
+.hist-info{flex:1;min-width:0;}
+.hist-name{font-weight:600;font-size:.82rem;}
+.hist-meta{font-size:.68rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+.hist-price{font-family:'Orbitron',monospace;font-size:.72rem;color:var(--gold);flex-shrink:0;}
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(2,4,10,.92);backdrop-filter:blur(24px);border-top:1px solid rgba(0,229,255,.08);display:flex;padding:7px 0 18px;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 4px;border:none;background:none;color:var(--text3);font-size:.58rem;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;transition:color .2s;}
+.nav-ico{font-size:1.25rem;line-height:1;}
+.nav-btn.active{color:var(--cyan);}
+.nav-btn.active .nav-ico{filter:drop-shadow(0 0 7px var(--cyan));}
+/* SETTINGS */
+.settings-list{padding:14px 20px;display:flex;flex-direction:column;gap:9px;}
+.s-item{background:var(--card);border:1px solid var(--rim2);border-radius:var(--r);padding:13px 15px;display:flex;align-items:center;justify-content:space-between;}
+.s-label{font-size:.86rem;font-weight:500;}
+.s-sub{font-size:.7rem;color:var(--text3);margin-top:2px;}
+.tog{width:44px;height:24px;border-radius:50px;background:var(--rim);position:relative;cursor:pointer;transition:background .3s;border:none;flex-shrink:0;}
+.tog.on{background:var(--violet);}
+.tog::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .3s;}
+.tog.on::after{transform:translateX(20px);}
+.api-wrap{padding:0 20px 18px;}
+.api-lbl{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);letter-spacing:.18em;text-transform:uppercase;margin-bottom:7px;}
+.api-inp{width:100%;background:var(--card);border:1px solid var(--rim);border-radius:var(--r);padding:11px 13px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.76rem;outline:none;transition:border-color .2s;}
+.api-inp:focus{border-color:var(--cyan);}
+.api-hint{font-size:.66rem;color:var(--text3);margin-top:5px;font-family:'JetBrains Mono',monospace;}
+.btn-clear{width:100%;padding:12px;border-radius:var(--r);background:rgba(255,68,102,.06);border:1px solid rgba(255,68,102,.22);color:#ff8899;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;transition:all .2s;}
+.btn-clear:hover{background:rgba(255,68,102,.11);border-color:rgba(255,68,102,.38);}
+.app-info{padding:0 20px;font-size:.64rem;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:2.1;}
+/* ── NUTRITION ── */
+.nutri-card{background:linear-gradient(135deg,rgba(0,255,159,.06),rgba(0,229,255,.03));border:1px solid rgba(0,255,159,.18);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.nutri-eye{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--green);letter-spacing:.18em;margin-bottom:8px;}
+.nutri-name{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;color:var(--green);margin-bottom:10px;}
+.nutri-macros{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.nutri-macro{background:var(--card2);border-radius:8px;padding:8px 6px;text-align:center;}
+.nutri-macro-val{font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;}
+.nutri-macro-lbl{font-size:.58rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.nutri-bar-wrap{margin-bottom:6px;}
+.nutri-bar-label{display:flex;justify-content:space-between;font-size:.66rem;color:var(--text3);margin-bottom:3px;}
+.nutri-bar-track{height:5px;background:var(--rim2);border-radius:50px;overflow:hidden;}
+.nutri-bar-fill{height:100%;border-radius:50px;animation:fillBar 1s ease forwards;}
+.nutri-log-btn{width:100%;padding:10px;border-radius:10px;background:rgba(0,255,159,.08);border:1px solid rgba(0,255,159,.22);color:var(--green);font-size:.8rem;font-weight:600;cursor:pointer;margin-top:8px;transition:all .2s;}
+.nutri-log-btn:hover{background:rgba(0,255,159,.14);}
+.food-log-wrap{background:var(--card);border:1px solid var(--rim2);border-radius:var(--r);padding:12px;margin-top:10px;}
+.food-log-head{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);letter-spacing:.18em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.food-log-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--rim2);font-size:.76rem;}
+.food-log-cal{font-family:'Orbitron',monospace;font-size:.72rem;color:var(--gold);}
+.food-log-total{background:rgba(0,255,159,.07);border:1px solid rgba(0,255,159,.15);border-radius:8px;padding:8px 10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+.food-log-total-lbl{font-size:.72rem;color:var(--text3);}
+.food-log-total-val{font-family:'Orbitron',monospace;font-size:.88rem;color:var(--green);}
+/* ── OCR ── */
+.ocr-result{background:var(--card);border:1px solid var(--rim);border-radius:14px;padding:14px;margin-top:12px;display:none;}
+.ocr-result.show{display:block;animation:fadeUp .3s ease;}
+.ocr-tabs{display:flex;gap:6px;margin-bottom:10px;}
+.ocr-tab{flex:1;padding:7px;border-radius:8px;border:1px solid var(--rim);background:var(--card2);color:var(--text3);font-size:.7rem;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:center;transition:all .2s;}
+.ocr-tab.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.07);}
+.ocr-panel{display:none;font-size:.82rem;line-height:1.8;color:var(--text2);}
+.ocr-panel.active{display:block;animation:fadeUp .25s ease;}
+.ocr-text-area{background:var(--card2);border:1px solid var(--rim2);border-radius:8px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:.72rem;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto;}
+.ocr-action-row{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;}
+.ocr-act{flex:1;min-width:80px;padding:8px;border-radius:8px;border:1px solid var(--rim);background:var(--card2);color:var(--text2);font-size:.72rem;cursor:pointer;transition:all .2s;text-align:center;}
+.ocr-act:hover{border-color:var(--cyan);color:var(--cyan);}
+.translate-row{display:flex;gap:7px;margin-top:8px;align-items:center;}
+.lang-select{flex:1;background:var(--card2);border:1px solid var(--rim);border-radius:8px;padding:7px 10px;color:var(--text2);font-size:.74rem;outline:none;}
+.translate-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--cyan);background:rgba(0,229,255,.07);color:var(--cyan);font-size:.74rem;cursor:pointer;white-space:nowrap;}
+/* ── FOLLOW-UP CHAT ── */
+.chat-wrap{margin-top:14px;background:var(--card);border:1px solid var(--rim);border-radius:14px;overflow:hidden;display:none;}
+.chat-wrap.show{display:block;animation:fadeUp .3s ease;}
+.chat-head{padding:10px 14px;background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(0,229,255,.05));border-bottom:1px solid var(--rim);font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--violet2);letter-spacing:.12em;display:flex;align-items:center;gap:7px;}
+.chat-head::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite;}
+.chat-messages{padding:10px 14px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;}
+.chat-msg{padding:9px 12px;border-radius:10px;font-size:.8rem;line-height:1.6;max-width:90%;}
+.chat-msg.user{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.25);color:var(--text);align-self:flex-end;border-radius:10px 10px 2px 10px;}
+.chat-msg.ai{background:var(--card2);border:1px solid var(--rim);color:var(--text2);align-self:flex-start;border-radius:10px 10px 10px 2px;}
+.chat-msg.typing{color:var(--text3);font-style:italic;}
+.chat-input-row{display:flex;gap:7px;padding:10px 14px;border-top:1px solid var(--rim2);}
+.chat-inp{flex:1;background:var(--card2);border:1px solid var(--rim);border-radius:8px;padding:9px 12px;color:var(--text);font-size:.8rem;outline:none;transition:border-color .2s;}
+.chat-inp:focus{border-color:var(--cyan);}
+.chat-send{padding:9px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--violet),rgba(124,58,237,.6));color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.chat-send:hover{box-shadow:0 0 12px rgba(124,58,237,.4);}
+.chat-send:disabled{opacity:.4;cursor:not-allowed;}
+.chat-suggestions{display:flex;gap:6px;padding:0 14px 10px;flex-wrap:wrap;}
+.chat-sug{padding:5px 10px;border-radius:50px;border:1px solid var(--rim);background:var(--card2);color:var(--text3);font-size:.68rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.chat-sug:hover{border-color:var(--violet2);color:var(--violet2);}
+/* ── MODE TABS ── */
+.mode-tabs{display:flex;gap:6px;padding:14px 20px 0;overflow-x:auto;scrollbar-width:none;}
+.mode-tabs::-webkit-scrollbar{display:none;}
+.mode-tab{flex-shrink:0;padding:7px 14px;border-radius:50px;border:1px solid var(--rim);background:var(--card2);color:var(--text3);font-size:.72rem;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.mode-tab.active{background:rgba(0,229,255,.09);border-color:var(--cyan);color:var(--cyan);}
+/* ── FACE MATCH ── */
+.facematch-wrap{padding:14px 20px;display:none;}
+.facematch-wrap.show{display:block;}
+.fm-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.fm-slot{aspect-ratio:1/1;background:var(--card);border:1px dashed var(--rim);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.fm-slot:hover{border-color:var(--cyan);}
+.fm-slot img{width:100%;height:100%;object-fit:cover;border-radius:13px;display:none;}
+.fm-slot-label{font-size:.65rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:6px;}
+.fm-slot-ico{font-size:1.8rem;}
+.fm-slot.loaded{border-style:solid;border-color:var(--violet2);}
+/* ── QR SCANNER ── */
+.qr-wrap{padding:14px 20px;display:none;}
+.qr-wrap.show{display:block;}
+.qr-result{background:var(--card);border:1px solid var(--rim);border-radius:14px;padding:14px;margin-top:12px;display:none;}
+.qr-result.show{display:block;animation:fadeUp .3s ease;}
+.qr-type{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--cyan);letter-spacing:.18em;margin-bottom:5px;}
+.qr-val{font-size:.9rem;font-weight:600;word-break:break-all;line-height:1.5;}
+.qr-actions{display:flex;gap:8px;margin-top:10px;}
+.qr-act-btn{flex:1;padding:9px;border-radius:10px;border:1px solid var(--rim);background:var(--card2);color:var(--text2);font-size:.74rem;cursor:pointer;transition:all .2s;}
+.qr-act-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+/* ── COLLECTIONS ── */
+.coll-wrap{padding:0 20px 20px;}
+.coll-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.coll-card{background:var(--card);border:1px solid var(--rim2);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;}
+.coll-card:hover{border-color:var(--cyan);}
+.coll-thumb-row{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:80px;}
+.coll-thumb-row img{width:100%;height:100%;object-fit:cover;}
+.coll-thumb-row .coll-ph{background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.coll-info{padding:8px 10px;}
+.coll-name{font-size:.78rem;font-weight:600;}
+.coll-count{font-size:.64rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+.coll-add-btn{border:1px dashed var(--rim);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text3);font-size:.68rem;font-family:'JetBrains Mono',monospace;cursor:pointer;}
+.coll-add-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.coll-add-ico{font-size:1.6rem;}
+/* ── AUTHENTICITY badge ── */
+.auth-card{background:linear-gradient(135deg,rgba(0,255,159,.06),rgba(0,229,255,.03));border:1px solid rgba(0,255,159,.2);border-radius:var(--r);padding:13px 15px;margin-bottom:14px;}
+.auth-eye{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--green);letter-spacing:.18em;margin-bottom:6px;}
+.auth-verdict{font-size:1rem;font-weight:700;margin-bottom:3px;}
+.auth-detail{font-size:.78rem;color:var(--text2);line-height:1.6;}
+.auth-verdict.genuine{color:var(--green);}
+.auth-verdict.fake{color:var(--red);}
+.auth-verdict.uncertain{color:#f59e0b;}
+/* ── FACE RESULT ── */
+.face-card{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(0,229,255,.04));border:1px solid rgba(124,58,237,.25);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.face-eye{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--violet2);letter-spacing:.18em;margin-bottom:8px;}
+.face-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+.face-metric{background:var(--card2);border-radius:8px;padding:8px 10px;}
+.face-metric-label{font-size:.58rem;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-bottom:2px;}
+.face-metric-val{font-size:.88rem;font-weight:600;color:var(--text);}
+.face-score-bar{height:3px;background:var(--rim2);border-radius:50px;margin-top:4px;overflow:hidden;}
+.face-score-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--violet),var(--cyan));}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">SCANIQ</div>
+    <div class="logo-sub">UNIVERSAL INTELLIGENCE</div>
+  </div>
+  <div class="scan-pill">SCANS <strong id="scan-counter">0</strong></div>
+</header>
+
+<div class="page active" id="page-scan">
+  <!-- MODE TABS -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" id="tab-scan" onclick="switchMode('scan')">🔬 Scanner</div>
+    <div class="mode-tab" id="tab-face" onclick="switchMode('face')">🧬 Face AI</div>
+    <div class="mode-tab" id="tab-facematch" onclick="switchMode('facematch')">👥 Face Match</div>
+    <div class="mode-tab" id="tab-auth" onclick="switchMode('auth')">🕵️ Authenticity</div>
+    <div class="mode-tab" id="tab-nutri" onclick="switchMode('nutri')">🍽️ Nutrition</div>
+    <div class="mode-tab" id="tab-ocr" onclick="switchMode('ocr')">📄 OCR + Text</div>
+    <div class="mode-tab" id="tab-qr" onclick="switchMode('qr')">📷 QR / Barcode</div>
+  </div>
+
+  <!-- STANDARD SCANNER MODE -->
+  <div id="mode-scan">
+  <div class="scanner-wrap">
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="cb tl"></div><div class="cb tr"></div>
+      <div class="cb bl"></div><div class="cb br"></div>
+      <div class="scan-line"></div>
+      <img id="preview-img" alt="">
+      <div class="drop-ph" id="drop-ph">
+        <span class="drop-icon">&#128300;</span>
+        <div class="drop-title">INITIALIZE SCAN</div>
+        <div class="drop-sub">Photograph or upload any object<br>AI identifies with full intelligence</div>
+      </div>
+      <div class="tgt" id="tgt"><div class="tgt-h"></div><div class="tgt-v"></div></div>
+    </div>
+    <input type="file" id="file-input" accept="image/*">
+    <div class="action-row">
+      <button class="btn btn-ghost" onclick="document.getElementById('file-input').click()">&#128193; Gallery</button>
+      <button class="btn btn-ghost" onclick="openCamera()">&#128247; Camera</button>
+      <button class="btn btn-scan" id="btn-scan" onclick="runScan()" disabled>&#9889;&nbsp; SCAN NOW</button>
+    </div>
+  </div>
+  <div class="cat-section">
+    <div class="sec-label">Category Focus</div>
+    <div class="chip-scroll" id="cat-scroll"></div>
+  </div>
+  <div class="loading-wrap" id="loading">
+    <div class="load-ring"></div>
+    <div class="load-text" id="lt">ANALYZING...</div>
+    <div class="load-sub" id="ls">Claude Vision processing</div>
+  </div>
+  <div class="err-box" id="err-box"></div>
+  <div id="results-wrap"><div class="result-card" id="result-card"></div>
+    <!-- FOLLOW-UP CHAT -->
+    <div class="chat-wrap" id="scan-chat-wrap">
+      <div class="chat-head">ASK FOLLOW-UP QUESTIONS</div>
+      <div class="chat-suggestions" id="scan-chat-suggestions"></div>
+      <div class="chat-messages" id="scan-chat-messages"></div>
+      <div class="chat-input-row">
+        <input class="chat-inp" id="scan-chat-inp" placeholder="Ask anything about this item..." onkeydown="if(event.key==='Enter')sendScanChat()">
+        <button class="chat-send" id="scan-chat-send" onclick="sendScanChat()">Send</button>
+      </div>
+    </div>
+  </div>
+  <div class="hist-section" id="hist-section">
+    <div class="sec-label">Recent Scans</div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+  </div><!-- end mode-scan -->
+
+  <!-- FACE AI MODE -->
+  <div id="mode-face" style="display:none">
+    <div class="scanner-wrap">
+      <div class="drop-zone" id="drop-zone-face" onclick="document.getElementById('fi-face').click()">
+        <div class="cb tl"></div><div class="cb tr"></div><div class="cb bl"></div><div class="cb br"></div>
+        <div class="scan-line" id="scan-line-face"></div>
+        <img id="prev-face" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:none;">
+        <div class="drop-ph" id="dph-face">
+          <span class="drop-icon">🧬</span>
+          <div class="drop-title">FACE ANALYSIS</div>
+          <div class="drop-sub">Upload a portrait photo<br>AI analyzes symmetry & aesthetics</div>
+        </div>
+      </div>
+      <input type="file" id="fi-face" accept="image/*">
+      <div class="action-row">
+        <button class="btn btn-ghost" onclick="document.getElementById('fi-face').click()">📁 Gallery</button>
+        <button class="btn btn-ghost" onclick="openFaceCamera()">📷 Camera</button>
+        <button class="btn btn-scan" id="btn-face" onclick="runFaceScan()" disabled>⚡&nbsp; ANALYZE FACE</button>
+      </div>
+    </div>
+    <div class="loading-wrap" id="loading-face"><div class="load-ring"></div><div class="load-text">ANALYZING FACE...</div><div class="load-sub">Claude Vision processing</div></div>
+    <div class="err-box" id="err-face"></div>
+    <div id="face-result" style="padding:14px 20px;display:none;animation:fadeUp .4s ease;"></div>
+  </div>
+
+  <!-- FACE MATCH MODE -->
+  <div id="mode-facematch" style="display:none">
+    <div style="padding:14px 20px 0">
+      <div class="sec-label">Upload Two Photos to Compare</div>
+      <div class="fm-row">
+        <div class="fm-slot" id="fm-slot-1" onclick="document.getElementById('fi-fm1').click()">
+          <img id="fm-img1" alt=""><span class="fm-slot-ico">👤</span><span class="fm-slot-label">PERSON A</span>
+        </div>
+        <div class="fm-slot" id="fm-slot-2" onclick="document.getElementById('fi-fm2').click()">
+          <img id="fm-img2" alt=""><span class="fm-slot-ico">👤</span><span class="fm-slot-label">PERSON B</span>
+        </div>
+      </div>
+      <input type="file" id="fi-fm1" accept="image/*">
+      <input type="file" id="fi-fm2" accept="image/*">
+      <button class="btn btn-scan" id="btn-fm" onclick="runFaceMatch()" disabled style="width:100%;margin-top:4px;">⚡&nbsp; COMPARE FACES</button>
+    </div>
+    <div class="loading-wrap" id="loading-fm"><div class="load-ring"></div><div class="load-text">COMPARING...</div><div class="load-sub">Claude Vision analyzing both faces</div></div>
+    <div class="err-box" id="err-fm"></div>
+    <div id="fm-result" style="padding:14px 20px;display:none;animation:fadeUp .4s ease;"></div>
+  </div>
+
+  <!-- AUTHENTICITY MODE -->
+  <div id="mode-auth" style="display:none">
+    <div class="scanner-wrap">
+      <div class="drop-zone" id="drop-zone-auth" onclick="document.getElementById('fi-auth').click()">
+        <div class="cb tl"></div><div class="cb tr"></div><div class="cb bl"></div><div class="cb br"></div>
+        <div class="scan-line" id="scan-line-auth"></div>
+        <img id="prev-auth" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:none;">
+        <div class="drop-ph" id="dph-auth">
+          <span class="drop-icon">🕵️</span>
+          <div class="drop-title">AUTHENTICITY CHECK</div>
+          <div class="drop-sub">Upload product / document / item<br>AI detects fake vs genuine</div>
+        </div>
+      </div>
+      <input type="file" id="fi-auth" accept="image/*">
+      <div class="action-row">
+        <button class="btn btn-ghost" onclick="document.getElementById('fi-auth').click()">📁 Gallery</button>
+        <button class="btn btn-ghost" onclick="openAuthCamera()">📷 Camera</button>
+        <button class="btn btn-scan" id="btn-auth" onclick="runAuthScan()" disabled>🕵️&nbsp; CHECK AUTHENTICITY</button>
+      </div>
+    </div>
+    <div class="loading-wrap" id="loading-auth"><div class="load-ring"></div><div class="load-text">AUTHENTICATING...</div><div class="load-sub">Claude Vision analyzing markers</div></div>
+    <div class="err-box" id="err-auth"></div>
+    <div id="auth-result" style="padding:14px 20px;display:none;animation:fadeUp .4s ease;"></div>
+  </div>
+
+  <!-- NUTRITION MODE -->
+  <div id="mode-nutri" style="display:none">
+    <div class="scanner-wrap">
+      <div class="drop-zone" id="drop-zone-nutri" onclick="document.getElementById('fi-nutri').click()">
+        <div class="cb tl"></div><div class="cb tr"></div><div class="cb bl"></div><div class="cb br"></div>
+        <div class="scan-line"></div>
+        <img id="prev-nutri" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:none;">
+        <div class="drop-ph" id="dph-nutri">
+          <span class="drop-icon">🍽️</span>
+          <div class="drop-title">NUTRITION SCAN</div>
+          <div class="drop-sub">Photo your meal or food<br>Instant calories + macros</div>
+        </div>
+      </div>
+      <input type="file" id="fi-nutri" accept="image/*">
+      <div class="action-row">
+        <button class="btn btn-ghost" onclick="document.getElementById('fi-nutri').click()">📁 Gallery</button>
+        <button class="btn btn-ghost" onclick="openNutriCamera()">📷 Camera</button>
+        <button class="btn btn-scan" id="btn-nutri" onclick="runNutriScan()" disabled>🍽️&nbsp; ANALYZE FOOD</button>
+      </div>
+    </div>
+    <div class="loading-wrap" id="loading-nutri"><div class="load-ring"></div><div class="load-text">ANALYZING FOOD...</div><div class="load-sub">Calculating nutrition data</div></div>
+    <div class="err-box" id="err-nutri"></div>
+    <div id="nutri-result" style="padding:14px 20px;display:none;animation:fadeUp .4s ease;">
+      <div id="nutri-card-content"></div>
+      <div class="food-log-wrap" id="food-log-section" style="display:none">
+        <div class="food-log-head">
+          <span>TODAY'S FOOD LOG</span>
+          <span id="food-log-date" style="color:var(--text3)"></span>
+        </div>
+        <div id="food-log-list"></div>
+        <div class="food-log-total">
+          <span class="food-log-total-lbl">Total Today</span>
+          <span class="food-log-total-val" id="food-log-total">0 kcal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OCR + DOCUMENT MODE -->
+  <div id="mode-ocr" style="display:none">
+    <div class="scanner-wrap">
+      <div class="drop-zone" id="drop-zone-ocr" onclick="document.getElementById('fi-ocr').click()">
+        <div class="cb tl"></div><div class="cb tr"></div><div class="cb bl"></div><div class="cb br"></div>
+        <div class="scan-line"></div>
+        <img id="prev-ocr" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:none;">
+        <div class="drop-ph" id="dph-ocr">
+          <span class="drop-icon">📄</span>
+          <div class="drop-title">DOCUMENT SCANNER</div>
+          <div class="drop-sub">Photo any document, note, or text<br>Extract · Summarize · Translate</div>
+        </div>
+      </div>
+      <input type="file" id="fi-ocr" accept="image/*">
+      <div class="action-row">
+        <button class="btn btn-ghost" onclick="document.getElementById('fi-ocr').click()">📁 Gallery</button>
+        <button class="btn btn-ghost" onclick="openOCRCamera()">📷 Camera</button>
+        <button class="btn btn-scan" id="btn-ocr" onclick="runOCR()" disabled>📄&nbsp; EXTRACT TEXT</button>
+      </div>
+    </div>
+    <div class="loading-wrap" id="loading-ocr"><div class="load-ring"></div><div class="load-text">EXTRACTING TEXT...</div><div class="load-sub">Claude Vision processing document</div></div>
+    <div class="err-box" id="err-ocr"></div>
+    <div class="ocr-result" id="ocr-result">
+      <div class="ocr-tabs">
+        <div class="ocr-tab active" onclick="switchOcrTab('text',this)">📝 Text</div>
+        <div class="ocr-tab" onclick="switchOcrTab('summary',this)">📋 Summary</div>
+        <div class="ocr-tab" onclick="switchOcrTab('todos',this)">✅ To-Dos</div>
+        <div class="ocr-tab" onclick="switchOcrTab('translate',this)">🌐 Translate</div>
+      </div>
+      <div class="ocr-panel active" id="ocr-panel-text">
+        <div class="ocr-text-area" id="ocr-text-content"></div>
+        <div class="ocr-action-row">
+          <button class="ocr-act" onclick="copyOCR()">📋 Copy All</button>
+          <button class="ocr-act" onclick="shareOCR()">↗ Share</button>
+        </div>
+      </div>
+      <div class="ocr-panel" id="ocr-panel-summary">
+        <div id="ocr-summary-content" style="font-size:.82rem;line-height:1.8;color:var(--text2)"></div>
+      </div>
+      <div class="ocr-panel" id="ocr-panel-todos">
+        <div id="ocr-todos-content"></div>
+      </div>
+      <div class="ocr-panel" id="ocr-panel-translate">
+        <div class="translate-row">
+          <select class="lang-select" id="translate-lang">
+            <option value="Arabic">Arabic العربية</option>
+            <option value="French">French Français</option>
+            <option value="Spanish">Spanish Español</option>
+            <option value="German">German Deutsch</option>
+            <option value="Chinese">Chinese 中文</option>
+            <option value="Japanese">Japanese 日本語</option>
+            <option value="Russian">Russian Русский</option>
+            <option value="Portuguese">Portuguese Português</option>
+            <option value="Turkish">Turkish Türkçe</option>
+            <option value="Hindi">Hindi हिन्दी</option>
+          </select>
+          <button class="translate-btn" onclick="runTranslate()">🌐 Translate</button>
+        </div>
+        <div id="ocr-translate-content" style="margin-top:10px;font-size:.82rem;line-height:1.8;color:var(--text2)"></div>
+        <div class="loading-wrap" id="loading-translate" style="padding:20px 0"><div class="load-ring"></div><div class="load-text" style="font-size:.72rem">TRANSLATING...</div></div>
+      </div>
+    </div>
+    <!-- Follow-up chat for OCR -->
+    <div id="ocr-chat-wrap" style="padding:0 0 10px"></div>
+  </div>
+
+  <!-- QR / BARCODE MODE -->
+  <div id="mode-qr" style="display:none">
+    <div class="scanner-wrap">
+      <div class="drop-zone" id="drop-zone-qr" onclick="document.getElementById('fi-qr').click()">
+        <div class="cb tl"></div><div class="cb tr"></div><div class="cb bl"></div><div class="cb br"></div>
+        <img id="prev-qr" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:none;">
+        <div class="drop-ph" id="dph-qr">
+          <span class="drop-icon">📷</span>
+          <div class="drop-title">QR / BARCODE SCAN</div>
+          <div class="drop-sub">Point at any QR code or barcode<br>Instant decode — no internet needed</div>
+        </div>
+        <canvas id="qr-canvas" style="display:none;"></canvas>
+      </div>
+      <input type="file" id="fi-qr" accept="image/*" capture="environment">
+      <div class="action-row">
+        <button class="btn btn-ghost" onclick="document.getElementById('fi-qr').click()">📁 Gallery</button>
+        <button class="btn btn-ghost" onclick="openQRCamera()">📷 Camera</button>
+        <button class="btn btn-scan" id="btn-qr" onclick="decodeQR()" disabled>📷&nbsp; DECODE</button>
+      </div>
+    </div>
+    <div class="err-box" id="err-qr"></div>
+    <div class="qr-result" id="qr-result">
+      <div class="qr-type" id="qr-type">QR CODE</div>
+      <div class="qr-val" id="qr-val"></div>
+      <div class="qr-actions" id="qr-actions"></div>
+    </div>
+  </div>
+
+</div><!-- end page-scan -->
+
+<div class="page" id="page-cats">
+  <div class="page-title">DOMAINS</div>
+  <div class="page-sub">// 49 categories · ranked by global demand</div>
+  <div class="cats-grid" id="cats-grid"></div>
+</div>
+
+<div class="page" id="page-hist">
+  <div class="page-title">HISTORY</div>
+  <div class="page-sub">// intelligence archive</div>
+  <div style="padding:0 16px;" id="full-hist"></div>
+</div>
+
+<div class="page" id="page-coll">
+  <div class="page-title">COLLECTIONS</div>
+  <div class="page-sub">// organize your scans into folders</div>
+  <div class="coll-wrap">
+    <div class="coll-grid" id="coll-grid"></div>
+  </div>
+</div>
+
+<div class="page" id="page-settings">
+  <div class="page-title">SYSTEM</div>
+  <div class="api-wrap">
+    <div class="api-lbl">Anthropic API Key</div>
+    <input class="api-inp" id="api-key" type="password" placeholder="sk-ant-...">
+    <div class="api-hint">// stored locally · never transmitted</div>
+  </div>
+  <div class="settings-list">
+    <div class="s-item"><div><div class="s-label">Live Price Feed</div><div class="s-sub">Gold, oil, metals — real-time web search</div></div><button class="tog on" id="t-live" onclick="this.classList.toggle('on')"></button></div>
+    <div class="s-item"><div><div class="s-label">Value Matrix</div><div class="s-sub">Multi-dimensional scoring system</div></div><button class="tog on" id="t-matrix" onclick="this.classList.toggle('on')"></button></div>
+    <div class="s-item"><div><div class="s-label">Save History</div><div class="s-sub">Persist scans on this device</div></div><button class="tog on" id="t-hist" onclick="this.classList.toggle('on')"></button></div>
+    <div class="s-item"><div><div class="s-label">Deep Analysis</div><div class="s-sub">4000 tokens — thorough but slower</div></div><button class="tog on" id="t-deep" onclick="this.classList.toggle('on')"></button></div>
+  </div>
+  <div style="padding:14px 20px;">
+    <button class="btn-clear" onclick="clearHist()">&#128465; Clear History</button>
+  </div>
+  <div class="app-info">SCANIQ v4.1 // UNIVERSAL AI SCANNER<br>ENGINE // CLAUDE VISION · ANTHROPIC<br>BUILD // MONTECARLO NEWS24</div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="sp('scan',this)"><span class="nav-ico">🔬</span>Scanner</button>
+  <button class="nav-btn" onclick="sp('cats',this)"><span class="nav-ico">⬡</span>Domains</button>
+  <button class="nav-btn" onclick="sp('coll',this)"><span class="nav-ico">📁</span>Collections</button>
+  <button class="nav-btn" onclick="sp('hist',this)"><span class="nav-ico">🕐</span>History</button>
+  <button class="nav-btn" onclick="sp('settings',this)"><span class="nav-ico">⚙</span>System</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.20.0/zxing.min.js"></script>
+<script>
+let imgB64=null,imgMime='image/jpeg',selCat='auto';
+let hist=JSON.parse(localStorage.getItem('sq4_hist')||'[]');
+let scanCount=parseInt(localStorage.getItem('sq4_cnt')||'0');
+document.getElementById('scan-counter').textContent=scanCount;
+document.getElementById('api-key').value=localStorage.getItem('sq4_key')||'';
+document.getElementById('api-key').addEventListener('change',e=>localStorage.setItem('sq4_key',e.target.value.trim()));
+const ARCHIVE_DB = {
+  animals: {
+    sources:[
+      {icon:'🔴',name:'IUCN Red List',url:'iucnredlist.org',info:'Conservation status: LC/NT/VU/EN/CR/EW/EX classification, population trend, habitat'},
+      {icon:'🌿',name:'CITES Appendices',url:'cites.org',info:'Trade regulations: Appendix I (banned), II (controlled), III (monitored)'},
+      {icon:'🐾',name:'Smithsonian National Zoo',url:'nationalzoo.si.edu',info:'Species biology, behavior, diet, lifespan, captive care data'},
+      {icon:'📊',name:'GBIF — Global Biodiversity',url:'gbif.org',info:'Occurrence records, geographic range, subspecies taxonomy'},
+      {icon:'💰',name:'Exotic Pet Market Data',url:'fauna-classifieds.com',info:'Legal trade prices, breeder estimates, import costs'},
+          {icon:'📖',name:'Wikipedia — Species Articles',url:'en.wikipedia.org',info:'Taxonomy, behavior, habitat, conservation history, cultural significance, subspecies list, phylogenetic tree'},
+      {icon:'📖',name:'Wikipedia — Species Articles',url:'en.wikipedia.org',info:'Taxonomy, behavior, habitat, conservation history, cultural significance, subspecies, phylogenetic classification'},
+    ],
+    dims:['monetary','rarity','ecological','scientific','heritage','legal'],
+    live:false,
+  },
+  plants: {
+    sources:[
+      {icon:'🔴',name:'IUCN Red List — Plants',url:'iucnredlist.org',info:'Endangered status, endemic range, extinction risk score'},
+      {icon:'🌿',name:'CITES Flora Appendices',url:'cites.org',info:'Trade protection level for orchids, cacti, cycads, tree species'},
+      {icon:'🌱',name:'Kew Royal Botanic Gardens',url:'kew.org/science',info:'Taxonomic classification, seed bank records, conservation priority'},
+      {icon:'💊',name:'WHO Monographs on Medicinal Plants',url:'who.int',info:'Traditional & clinical medicinal uses, active compounds, dosage'},
+      {icon:'🌳',name:'Monumental Trees Database',url:'monumentaltrees.com',info:'Champion tree records, age estimates, girth measurements'},
+      {icon:'💰',name:'RHS Plant Finder & Rare Plant Auctions',url:'rhs.org.uk',info:'Market prices for rare species, nursery availability, collector demand'},
+          {icon:'📖',name:'Wikipedia — Botany & Flora',url:'en.wikipedia.org',info:'Taxonomic classification, native range, ecological role, ethnobotanical uses, cultivation history, poisonous/edible notes'},
+      {icon:'📖',name:'Wikipedia — Botany & Flora',url:'en.wikipedia.org',info:'Taxonomic classification, native range, ecological role, ethnobotanical uses, cultivation history, poisonous or edible notes'},
+    ],
+    dims:['monetary','rarity','medicinal','ecological','scientific','heritage'],
+    live:false,
+  },
+  currency: {
+    sources:[
+      {icon:'🪙',name:'NGC Coin Census',url:'ngccoin.com',info:'Professional grading (MS/PR 1-70), population reports, finest known'},
+      {icon:'🏛️',name:'PCGS CoinFacts',url:'pcgs.com/coinfacts',info:'Mintage figures, die varieties, historical auction prices'},
+      {icon:'📖',name:'Numista World Coin Database',url:'numista.com',info:'Catalog numbers, specifications, issuing authority, metal composition'},
+      {icon:'🔨',name:'Heritage Auctions Archives',url:'ha.com/coins',info:'Realized auction prices, lot descriptions, provenance history'},
+      {icon:'📜',name:'Standard Catalog of World Coins',url:'krause.com',info:'Krause-Mishler numbers, rarity ratings, price guide by grade'},
+      {icon:'💵',name:'CoinMarketCap (Crypto)',url:'coinmarketcap.com',info:'Real-time crypto prices, market cap, volume — for digital currencies'},
+      {icon:'📈',name:'XE Currency + OANDA',url:'xe.com',info:'Live fiat exchange rates for modern banknotes'},
+          {icon:'📖',name:'Wikipedia — Numismatics',url:'en.wikipedia.org',info:'Coin/banknote history, issuing authority, monetary policy context, historical exchange rates, design iconography'},
+      {icon:'📖',name:'Wikipedia — Numismatics & Money',url:'en.wikipedia.org',info:'Coin or banknote history, issuing authority, monetary policy context, historical exchange rates, design iconography'},
+    ],
+    dims:['monetary','numismatic','historical','rarity','condition','heritage'],
+    live:true,
+  },
+  palaces: {
+    sources:[
+      {icon:'🏛️',name:'UNESCO World Heritage List',url:'whc.unesco.org',info:'WH status, Outstanding Universal Value criteria, buffer zone regulations'},
+      {icon:'🏰',name:'Historic England / ICOMOS',url:'historicengland.org.uk',info:'Listed building grade (I/II*/II), scheduled monument status'},
+      {icon:'📐',name:'Aga Khan Trust for Culture',url:'akdn.org/architecture',info:'Islamic palace & fortress documentation, restoration records'},
+      {icon:'💰',name:'Savills World Heritage Property Index',url:'savills.com',info:'Historic estate valuations, comparable transactions, heritage premium'},
+      {icon:'🗺️',name:'Europeana Heritage Collections',url:'europeana.eu',info:'Digitized architectural drawings, historical photographs, archival plans'},
+      {icon:'📜',name:'National Trust / Châteaux de France',url:'nationaltrust.org.uk',info:'Ownership history, restoration costs, visitor revenue data'},
+          {icon:'📖',name:'Wikipedia — Historic Palaces',url:'en.wikipedia.org',info:'Construction date, ruling dynasty, architectural style, major renovations, current use, visitor figures, notable events'},
+      {icon:'📖',name:'Wikipedia — Historic Palaces',url:'en.wikipedia.org',info:'Construction date, ruling dynasty, architectural style, major renovations, current use, visitor figures, notable events'},
+    ],
+    dims:['monetary','heritage','architectural','rarity','legal','tourism'],
+    live:false,
+  },
+  artifacts: {
+    sources:[
+      {icon:'🏺',name:'British Museum Collection Online',url:'britishmuseum.org/collection',info:'Object database: culture, period, provenance, excavation site, material'},
+      {icon:'🌐',name:'Europeana — Cultural Heritage',url:'europeana.eu',info:'5M+ digitized artifacts from 3,000+ European institutions'},
+      {icon:'🔍',name:'Art Loss Register',url:'artloss.com',info:'Stolen/looted artifact database, provenance verification'},
+      {icon:'📜',name:'UNESCO 1970 Convention Database',url:'unesco.org',info:'Illicit trafficking laws, country of origin claims, repatriation cases'},
+      {icon:'🔨',name:'Sothebys / Christies Antiquities',url:'sothebys.com',info:'Auction estimates, realized prices, provenance documentation standards'},
+      {icon:'🏛️',name:'Metropolitan Museum — Heilbrunn Timeline',url:'metmuseum.org',info:'Art historical context, civilization chronology, iconographic analysis'},
+      {icon:'🌍',name:'ASOR Cultural Heritage Initiatives',url:'asor-syrianheritage.org',info:'Conflict-zone artifact tracking, site damage assessment'},
+          {icon:'📖',name:'Wikipedia — Archaeology',url:'en.wikipedia.org',info:'Discovery context, excavation history, cultural period, iconographic meaning, museum holdings, repatriation disputes'},
+      {icon:'📖',name:'Wikipedia — Archaeology & Artifacts',url:'en.wikipedia.org',info:'Discovery context, excavation history, cultural period, iconographic meaning, museum holdings, repatriation disputes'},
+    ],
+    dims:['monetary','heritage','historical','rarity','scientific','legal'],
+    live:false,
+  },
+  metals: {
+    sources:[
+      {icon:'📈',name:'LBMA — London Bullion Market',url:'lbma.org.uk',info:'Official gold/silver/platinum/palladium spot prices, AM/PM fix'},
+      {icon:'⚡',name:'LME — London Metal Exchange',url:'lme.com',info:'Base metals: copper, aluminum, zinc, lead, nickel, tin — live prices'},
+      {icon:'📊',name:'Kitco Metals',url:'kitco.com',info:'Live spot prices, historical charts, scrap dealer pricing'},
+      {icon:'🏦',name:'World Gold Council',url:'gold.org',info:'Investment demand, central bank reserves, jewelry consumption data'},
+      {icon:'🧪',name:'CRC Handbook of Chemistry',url:'crcpress.com',info:'Physical properties, atomic weight, melting point, conductivity data'},
+      {icon:'🌍',name:'USGS Minerals Information',url:'usgs.gov/minerals',info:'Global reserves, mine production, country-by-country output data'},
+          {icon:'📖',name:'Wikipedia — Metals & Metallurgy',url:'en.wikipedia.org',info:'Atomic properties, discovery history, industrial applications, major deposits, refining processes, alloy information'},
+      {icon:'📖',name:'Wikipedia — Metals & Metallurgy',url:'en.wikipedia.org',info:'Atomic properties, discovery history, industrial applications, major deposits, refining processes, alloy information'},
+    ],
+    dims:['monetary','industrial','investment','rarity','purity','historical'],
+    live:true,
+  },
+  energy: {
+    sources:[
+      {icon:'🛢️',name:'EIA — US Energy Information',url:'eia.gov',info:'WTI/Brent crude prices, natural gas, coal, refinery data'},
+      {icon:'🌍',name:'OPEC Monthly Oil Market Report',url:'opec.org',info:'Production quotas, member output, demand forecasts'},
+      {icon:'📊',name:'IEA — International Energy Agency',url:'iea.org',info:'Global energy mix, renewable capacity, fossil fuel transition data'},
+      {icon:'⚡',name:'S&P Global Platts',url:'spglobal.com/commodities',info:'Real-time energy commodity prices, LNG spot market'},
+      {icon:'📈',name:'CME Group Energy Futures',url:'cmegroup.com',info:'Oil & gas futures contracts, options data, delivery specifications'},
+          {icon:'📖',name:'Wikipedia — Energy Resources',url:'en.wikipedia.org',info:'Formation geology, reserve estimates, extraction methods, environmental impact, geopolitical significance, peak production data'},
+      {icon:'📖',name:'Wikipedia — Energy Resources',url:'en.wikipedia.org',info:'Formation geology, reserve estimates, extraction methods, environmental impact, geopolitical significance, peak production data'},
+    ],
+    dims:['monetary','industrial','investment','rarity','ecological','historical'],
+    live:true,
+  },
+  space: {
+    sources:[
+      {icon:'🚀',name:'NASA/IPAC Extragalactic Database',url:'ned.ipac.caltech.edu',info:'Galaxy distances, redshift, morphology, photometric data'},
+      {icon:'🌌',name:'ESA Hubble & Webb Archives',url:'esahubble.org',info:'Deep field imagery, spectroscopic data, nebula catalogs'},
+      {icon:'⭐',name:'SIMBAD Astronomical Database',url:'simbad.u-strasbg.fr',info:'Star classifications, coordinates, proper motion, magnitude'},
+      {icon:'☄️',name:'JPL Small-Body Database',url:'ssd.jpl.nasa.gov',info:'Asteroid/comet orbital elements, composition, close approach data'},
+      {icon:'🌙',name:'Lunar and Planetary Institute',url:'lpi.usra.edu',info:'Planetary geology, mission data, crater catalogs'},
+      {icon:'📡',name:'arXiv Astrophysics',url:'arxiv.org/astro-ph',info:'Latest peer-reviewed research on all astronomical objects'},
+          {icon:'📖',name:'Wikipedia — Astronomy',url:'en.wikipedia.org',info:'Discovery date, constellation location, physical parameters, observation history, mythology, notable missions, stellar classification'},
+      {icon:'📖',name:'Wikipedia — Astronomy & Cosmos',url:'en.wikipedia.org',info:'Discovery date, constellation, physical parameters, observation history, mythology, notable missions, stellar classification'},
+    ],
+    dims:['scientific','rarity','historical','aesthetic','monetary','ecological'],
+    live:false,
+  },
+  art: {
+    sources:[
+      {icon:'🎨',name:'Artnet Price Database',url:'artnet.com/price-database',info:'650,000+ auction results, artist analytics, market trend indices'},
+      {icon:'🏛️',name:'Artsy — Art Market Data',url:'artsy.net',info:'Artist career stages, gallery representation, price ranges'},
+      {icon:'🔍',name:'Art Loss Register',url:'artloss.com',info:'Stolen art database, provenance research, authentication records'},
+      {icon:'📜',name:'TEFAF Art Market Report',url:'tefaf.com',info:'Annual global art market size, segment analysis, collector trends'},
+      {icon:'🔨',name:'Sothebys / Christies / Phillips',url:'sothebys.com',info:'Pre-sale estimates, hammer prices, buyer premium calculations'},
+      {icon:'🖼️',name:'Grove Art Online / Oxford Art',url:'grovemuseum.com',info:'Artist biographies, movement classifications, iconographic analysis'},
+          {icon:'📖',name:'Wikipedia — Art History',url:'en.wikipedia.org',info:'Artist biography, movement classification, commission history, stylistic analysis, exhibition record, critical reception'},
+      {icon:'📖',name:'Wikipedia — Art History',url:'en.wikipedia.org',info:'Artist biography, movement classification, commission history, stylistic analysis, exhibition record, critical reception'},
+    ],
+    dims:['monetary','aesthetic','provenance','rarity','heritage','condition'],
+    live:false,
+  },
+  gems: {
+    sources:[
+      {icon:'💎',name:'GIA — Gemological Institute',url:'gia.edu',info:'4Cs grading (cut/color/clarity/carat), certification database, rarity scale'},
+      {icon:'🔬',name:'Gübelin Gem Lab',url:'gubelingemlab.com',info:'Geographic origin determination, treatment detection, inclusion mapping'},
+      {icon:'📊',name:'Rapaport Diamond Report',url:'rapaport.com',info:'Weekly diamond price list by cut/color/clarity/carat — industry standard'},
+      {icon:'🌍',name:'ICA — Intl. Colored Gemstone Assoc.',url:'gemstone.org',info:'Colored stone market, origin premiums, treatment disclosure standards'},
+      {icon:'🏔️',name:'Mindat.org Mineralogy Database',url:'mindat.org',info:'Mineral species, crystal system, locality data, type specimens'},
+      {icon:'🔨',name:'Christie\'s Magnificent Jewels',url:'christies.com/jewels',info:'Record auction prices for colored stones, signed jewelry premiums'},
+          {icon:'📖',name:'Wikipedia — Gemology & Minerals',url:'en.wikipedia.org',info:'Crystal structure, Mohs hardness, refractive index, famous specimens, mining locations, historical lore, treatment history'},
+      {icon:'📖',name:'Wikipedia — Gemology & Minerals',url:'en.wikipedia.org',info:'Crystal structure, Mohs hardness, refractive index, famous specimens, mining locations, historical lore, treatment methods'},
+    ],
+    dims:['monetary','rarity','aesthetic','scientific','condition','heritage'],
+    live:false,
+  },
+  fashion: {
+    sources:[
+      {icon:'👗',name:'Vogue Business Market Reports',url:'voguebusiness.com',info:'Brand valuations, trend forecasting, luxury segment price analysis'},
+      {icon:'💼',name:'Vestiaire Collective / The RealReal',url:'vestiairecollective.com',info:'Pre-owned luxury resale prices, authentication data, demand scores'},
+      {icon:'📊',name:'Bain & Company Luxury Study',url:'bain.com/luxury',info:'Annual personal luxury goods market size, brand growth rates'},
+      {icon:'🧵',name:'Business of Fashion',url:'businessoffashion.com',info:'Designer profiles, brand strategy, production cost transparency'},
+      {icon:'🏷️',name:'Statista Apparel Market',url:'statista.com',info:'Category market size, average selling prices, consumer demographics'},
+          {icon:'📖',name:'Wikipedia — Fashion History',url:'en.wikipedia.org',info:'Brand founding history, designer biographies, iconic collections, cultural impact, manufacturing regions, fashion week presence'},
+      {icon:'📖',name:'Wikipedia — Fashion History',url:'en.wikipedia.org',info:'Brand founding, designer biographies, iconic collections, cultural impact, manufacturing regions, fashion week presence'},
+    ],
+    dims:['monetary','aesthetic','rarity','heritage','condition','provenance'],
+    live:false,
+  },
+  realestate: {
+    sources:[
+      {icon:'🏠',name:'Knight Frank Prime Index',url:'knightfrank.com',info:'Prime residential prices by city, luxury market performance'},
+      {icon:'🌍',name:'Global Property Guide',url:'globalpropertyguide.com',info:'Price per sqm by country/city, rental yields, legal framework'},
+      {icon:'📊',name:'MSCI Real Estate Analytics',url:'msci.com/real-estate',info:'Institutional property values, cap rates, total return indices'},
+      {icon:'🗺️',name:'Numbeo Cost of Living',url:'numbeo.com',info:'City-level price comparisons, affordability ratios, expat data'},
+      {icon:'🏛️',name:'Savills World Research',url:'savills.com/research',info:'Cross-border investment flows, emerging market opportunities'},
+          {icon:'📖',name:'Wikipedia — Real Estate & Urbanism',url:'en.wikipedia.org',info:'City/region history, zoning laws background, urban development context, landmark designations, neighborhood character'},
+      {icon:'📖',name:'Wikipedia — Real Estate & Urbanism',url:'en.wikipedia.org',info:'City history, zoning background, urban development context, landmark designations, neighborhood character, demographics'},
+    ],
+    dims:['monetary','rarity','heritage','legal','tourism','ecological'],
+    live:false,
+  },
+  medicine: {
+    sources:[
+      {icon:'💊',name:'WHO Essential Medicines List',url:'who.int/medicines',info:'Essential drug classifications, therapeutic categories, generic availability'},
+      {icon:'🔬',name:'PubMed / MEDLINE',url:'pubmed.ncbi.nlm.nih.gov',info:'35M+ biomedical citations, clinical trial results, drug efficacy data'},
+      {icon:'📋',name:'FDA Drug Database',url:'fda.gov/drugs',info:'Approval status, NDC codes, manufacturer, dosage forms, warnings'},
+      {icon:'💰',name:'GoodRx Drug Pricing',url:'goodrx.com',info:'US retail prices, insurance coverage, discount program data'},
+      {icon:'🌡️',name:'Drugs.com Interactions',url:'drugs.com',info:'Interaction checker, side effects database, professional monographs'},
+          {icon:'📖',name:'Wikipedia — Pharmacology & Medicine',url:'en.wikipedia.org',info:'Drug mechanism of action, discovery timeline, clinical trials history, side effect profile, patent expiry, generic availability'},
+      {icon:'📖',name:'Wikipedia — Pharmacology & Medicine',url:'en.wikipedia.org',info:'Drug mechanism, discovery timeline, clinical trial history, side effect profile, patent expiry, generic availability'},
+    ],
+    dims:['scientific','monetary','rarity','legal','heritage','condition'],
+    live:false,
+  },
+  books: {
+    sources:[
+      {icon:'📚',name:'Rare Books — ABAA',url:'abaa.org',info:'Antiquarian booksellers pricing, first edition identification, bibliographic records'},
+      {icon:'🔨',name:'Christie\'s & Sothebys Books',url:'christies.com/books',info:'Manuscript & rare book auction records, illuminated manuscript data'},
+      {icon:'📖',name:'WorldCat — OCLC',url:'worldcat.org',info:'Holdings of 10,000+ libraries, edition records, physical descriptions'},
+      {icon:'🏛️',name:'British Library Digitized Manuscripts',url:'bl.uk/manuscripts',info:'Medieval manuscripts, provenance chains, digitized folios'},
+      {icon:'📜',name:'ISTC — Incunabula Short Title Catalogue',url:'data.cerl.org/istc',info:'Books printed before 1501, holding libraries, census of survivors'},
+          {icon:'📖',name:'Wikipedia — Bibliography & Rare Books',url:'en.wikipedia.org',info:'Author biography, publication date, literary significance, banned/censored history, translation count, adaptation records'},
+      {icon:'📖',name:'Wikipedia — Bibliography & Literature',url:'en.wikipedia.org',info:'Author biography, publication date, literary significance, censorship history, translation count, adaptation records'},
+    ],
+    dims:['monetary','rarity','historical','condition','provenance','heritage'],
+    live:false,
+  },
+  cars: {
+    sources:[
+      {icon:'🚗',name:'Hagerty Valuation Tools',url:'hagerty.com/valuation',info:'Classic car values by condition (#1-#4), trend data, concours premiums'},
+      {icon:'🏎️',name:'RM Sothebys / Gooding & Co',url:'rmsothebys.com',info:'Collector car auction results, consignment estimates, market reports'},
+      {icon:'📊',name:'NADA Guides / Kelley Blue Book',url:'nadaguides.com',info:'Current market values, trade-in vs retail spread, mileage adjustments'},
+      {icon:'🔧',name:'VIN History — Carfax / AutoCheck',url:'carfax.com',info:'Accident history, service records, title status, ownership count'},
+      {icon:'🏁',name:'Classic & Sports Car Price Guide',url:'classicandsportscar.com',info:'European classic market, model histories, investment grade analysis'},
+          {icon:'📖',name:'Wikipedia — Automotive History',url:'en.wikipedia.org',info:'Model production years, engine specifications, designer/manufacturer history, motorsport record, recalls, cultural icon status'},
+      {icon:'📖',name:'Wikipedia — Automotive History',url:'en.wikipedia.org',info:'Model production years, engine specs, designer history, motorsport record, notable recalls, cultural icon status'},
+    ],
+    dims:['monetary','rarity','heritage','condition','aesthetic','provenance'],
+    live:false,
+  },
+  flags: {
+    sources:[
+      {icon:'🚩',name:'FOTW — Flags of the World',url:'flagspot.net',info:'Vexillological database: history, symbolism, usage rules, variants'},
+      {icon:'🌍',name:'CIA World Factbook',url:'cia.gov/the-world-factbook',info:'Country profiles, government type, economy, population, geography'},
+      {icon:'📊',name:'Statista Media & Advertising',url:'statista.com/advertising',info:'Ad spend by country, billboard CPM rates, digital vs OOH split'},
+      {icon:'🏛️',name:'UN Member States Data',url:'un.org/en/about-us/member-states',info:'Membership date, treaty obligations, peacekeeping contributions'},
+          {icon:'📖',name:'Wikipedia — Vexillology & Countries',url:'en.wikipedia.org',info:'Flag design history, symbolism of colors and emblems, historical variants, country founding, constitutional context'},
+      {icon:'📖',name:'Wikipedia — Vexillology & Nations',url:'en.wikipedia.org',info:'Flag design history, color and emblem symbolism, historical variants, country founding date, constitutional context'},
+    ],
+    dims:['heritage','historical','rarity','scientific','monetary','aesthetic'],
+    live:false,
+  },
+  marine: {
+    sources:[
+      {icon:'🐠',name:'FishBase Global Database',url:'fishbase.org',info:'50,000+ species, taxonomy, habitat, trophic level, max size'},
+      {icon:'🌊',name:'OBIS — Ocean Biodiversity Info',url:'obis.org',info:'Marine species occurrence records, depth range, salinity tolerance'},
+      {icon:'🔴',name:'IUCN Marine Species',url:'iucnredlist.org',info:'Conservation status for fish, corals, marine mammals, sea turtles'},
+      {icon:'💰',name:'FAO Global Aquaculture Data',url:'fao.org/fishery',info:'Species trade volumes, export prices, aquaculture production values'},
+      {icon:'🐚',name:'Coral Triangle Initiative',url:'coraltriangleinitiative.org',info:'Reef biodiversity hotspots, bleaching records, protected area data'},
+          {icon:'📖',name:'Wikipedia — Marine Biology',url:'en.wikipedia.org',info:'Species taxonomy, habitat depth range, reproductive cycle, predator-prey relationships, bioluminescence, migration patterns'},
+      {icon:'📖',name:'Wikipedia — Marine Biology',url:'en.wikipedia.org',info:'Species taxonomy, habitat depth range, reproductive cycle, predator-prey relations, bioluminescence, migration patterns'},
+    ],
+    dims:['monetary','rarity','ecological','scientific','heritage','legal'],
+    live:false,
+  },
+  architecture: {
+    sources:[
+      {icon:'🏛️',name:'Archnet — MIT Islamic Architecture',url:'archnet.org',info:'50,000+ buildings, architects, sites, photographic archives'},
+      {icon:'🏗️',name:'Dezeen / ArchDaily Projects',url:'dezeen.com',info:'Contemporary architecture database, cost per sqm estimates, awards'},
+      {icon:'📐',name:'DOCOMOMO International',url:'docomomo.com',info:'Modern movement buildings at risk, documentation, preservation status'},
+      {icon:'💰',name:'RICS Building Cost Information',url:'rics.org/bcis',info:'UK & global construction costs per m² by building type and region'},
+      {icon:'🌍',name:'UNESCO World Architecture',url:'whc.unesco.org',info:'Architectural world heritage sites, integrity assessments'},
+          {icon:'📖',name:'Wikipedia — Architecture History',url:'en.wikipedia.org',info:'Architectural style definition, period characteristics, key architects, structural innovations, regional variants, famous examples'},
+      {icon:'📖',name:'Wikipedia — Architecture History',url:'en.wikipedia.org',info:'Style definitions, period characteristics, key architects, structural innovations, regional variants, famous examples'},
+    ],
+    dims:['monetary','heritage','aesthetic','rarity','architectural','legal'],
+    live:false,
+  },
+  psychology: {
+    sources:[
+      {icon:'🧠',name:'APA PsycINFO',url:'apa.org/psycinfo',info:'5M+ psychology records, DSM classifications, research methodologies'},
+      {icon:'📋',name:'DSM-5-TR / ICD-11',url:'psychiatry.org/dsm5',info:'Diagnostic criteria, prevalence rates, differential diagnosis'},
+      {icon:'🔬',name:'PubMed Psychology',url:'pubmed.ncbi.nlm.nih.gov',info:'Peer-reviewed clinical studies, meta-analyses, treatment outcomes'},
+      {icon:'📊',name:'WHO Mental Health Atlas',url:'who.int/mental_health',info:'Global prevalence data, healthcare system resources, treatment gaps'},
+          {icon:'📖',name:'Wikipedia — Psychology & Psychiatry',url:'en.wikipedia.org',info:'Theoretical framework, founding psychologists, key experiments, criticisms, current clinical applications, cross-cultural validity'},
+      {icon:'📖',name:'Wikipedia — Psychology & Psychiatry',url:'en.wikipedia.org',info:'Theoretical framework, founding figures, key experiments, criticisms, clinical applications, cross-cultural validity'},
+    ],
+    dims:['scientific','heritage','historical','rarity','aesthetic','legal'],
+    live:false,
+  },
+  religion: {
+    sources:[
+      {icon:'☪️',name:'Encyclopedia of Religion (Macmillan)',url:'religion.oxfordre.com',info:'Theological doctrines, ritual practices, historical development'},
+      {icon:'📜',name:'JSTOR Sacred Texts Collection',url:'jstor.org',info:'Primary religious texts, scholarly commentary, translation archives'},
+      {icon:'🌍',name:'Pew Research — Global Religion',url:'pewresearch.org/religion',info:'Adherent demographics, practice rates, interfaith relations data'},
+      {icon:'🏛️',name:'Quranic Arabic Corpus',url:'corpus.quran.com',info:'Morphological analysis, word-by-word breakdown, classical tafsir'},
+      {icon:'🗺️',name:'World Religion Database',url:'worldreligiondatabase.org',info:'580+ denominations, historical membership data, geographic spread'},
+          {icon:'📖',name:'Wikipedia — Religion & Theology',url:'en.wikipedia.org',info:'Founding history, core beliefs, sacred texts, major denominations, geographic spread, historical schisms, interfaith relations'},
+      {icon:'📖',name:'Wikipedia — Religion & Theology',url:'en.wikipedia.org',info:'Founding history, core beliefs, sacred texts, denominations, geographic spread, historical schisms, interfaith context'},
+    ],
+    dims:['heritage','historical','rarity','scientific','aesthetic','legal'],
+    live:false,
+  },
+  sociology: {
+    sources:[
+      {icon:'👥',name:'World Bank Open Data',url:'data.worldbank.org',info:'GDP, inequality (Gini), poverty rates, social indicators by country'},
+      {icon:'📊',name:'OECD Better Life Index',url:'oecdbetterlifeindex.org',info:'Quality of life metrics: education, safety, community, environment'},
+      {icon:'🌍',name:'UN Human Development Reports',url:'hdr.undp.org',info:'HDI rankings, gender inequality, multidimensional poverty index'},
+      {icon:'🔬',name:'JSTOR Sociology Journals',url:'jstor.org/sociology',info:'Peer-reviewed sociological research, demographic studies, field work'},
+          {icon:'📖',name:'Wikipedia — Sociology & Anthropology',url:'en.wikipedia.org',info:'Theoretical origins, key sociologists, related movements, empirical studies, cross-cultural comparisons, contemporary relevance'},
+      {icon:'📖',name:'Wikipedia — Sociology & Anthropology',url:'en.wikipedia.org',info:'Theoretical origins, key sociologists, related movements, empirical studies, cross-cultural comparisons, contemporary relevance'},
+    ],
+    dims:['scientific','heritage','historical','rarity','ecological','aesthetic'],
+    live:false,
+  },
+  construction: {
+    sources:[
+      {icon:'🏗️',name:'RSMeans Construction Data',url:'rsmeans.com',info:'Unit cost data by material, region, crew size — US & international'},
+      {icon:'💰',name:'BCIS — Building Cost Index',url:'rics.org/bcis',info:'UK tender price index, regional factors, material cost trends'},
+      {icon:'🌍',name:'Turner & Townsend Cost Survey',url:'turnerandtownsend.com',info:'International construction cost benchmarks: 90 cities worldwide'},
+      {icon:'🏠',name:'ICE — Embodied Carbon Database',url:'ice.unige.ch',info:'Carbon coefficients per kg of material, lifecycle assessment data'},
+      {icon:'🔧',name:'Means Heavy Construction',url:'rsmeans.com/heavy',info:'Civil engineering costs: earthwork, utilities, site work, bridges'},
+          {icon:'📖',name:'Wikipedia — Construction Materials',url:'en.wikipedia.org',info:'Material composition, historical use, structural properties, environmental concerns, manufacturing process, building code standards'},
+      {icon:'📖',name:'Wikipedia — Construction & Materials',url:'en.wikipedia.org',info:'Material composition, historical use, structural properties, environmental concerns, manufacturing process, building codes'},
+    ],
+    dims:['monetary','industrial','ecological','scientific','rarity','heritage'],
+    live:false,
+  },
+  food: {
+    sources:[
+      {icon:'🍕',name:'FAO Food Price Index',url:'fao.org/worldfoodsituation',info:'Monthly commodity food prices: cereals, dairy, meat, oils, sugar'},
+      {icon:'⭐',name:'Michelin Guide Archives',url:'guide.michelin.com',info:'Restaurant stars, Bib Gourmand, price categories, inspectors notes'},
+      {icon:'🔬',name:'USDA FoodData Central',url:'fdc.nal.usda.gov',info:'Nutritional composition, serving sizes, origin, processing method'},
+      {icon:'🌍',name:'Taste Atlas — Traditional Food',url:'tasteatlas.com',info:'Regional dishes, ingredient origins, cultural context, authenticity data'},
+      {icon:'💰',name:'Statista Food Service Market',url:'statista.com/food',info:'Average meal prices by country, restaurant segment data, delivery trends'},
+          {icon:'📖',name:'Wikipedia — Culinary Arts',url:'en.wikipedia.org',info:'Dish origin, historical recipe evolution, regional variations, cultural significance, dietary classification, Michelin recognition'},
+      {icon:'📖',name:'Wikipedia — Culinary Arts & Food',url:'en.wikipedia.org',info:'Dish origin story, recipe evolution, regional variations, cultural significance, dietary classification, Michelin recognition'},
+    ],
+    dims:['monetary','heritage','rarity','scientific','aesthetic','ecological'],
+    live:false,
+  },
+  ads: {
+    sources:[
+      {icon:'📢',name:'WARC Global Ad Spend',url:'warc.com',info:'Advertising expenditure by country, medium, category — annual data'},
+      {icon:'📊',name:'Statista Advertising Market',url:'statista.com/advertising',info:'CPM/CPC rates by platform, OOH billboard inventory pricing'},
+      {icon:'📱',name:'Meta / Google Ad Benchmarks',url:'business.facebook.com',info:'Average CPC, CTR, CPM by industry vertical and region'},
+      {icon:'🏙️',name:'OAAA — Out of Home Association',url:'oaaa.org',info:'Billboard/transit/digital OOH rates, audience measurement, formats'},
+      {icon:'🎯',name:'eMarketer Ad Spending',url:'emarketer.com',info:'Digital ad spend forecasts, platform market shares, brand safety data'},
+          {icon:'📖',name:'Wikipedia — Advertising History',url:'en.wikipedia.org',info:'Medium history, landmark campaigns, regulatory frameworks, psychological theories applied, cultural impact, censorship cases'},
+      {icon:'📖',name:'Wikipedia — Advertising History',url:'en.wikipedia.org',info:'Medium history, landmark campaigns, regulatory frameworks, psychological theories applied, cultural impact, censorship cases'},
+    ],
+    dims:['monetary','aesthetic','rarity','scientific','heritage','industrial'],
+    live:false,
+  },
+  gaming: {
+    sources:[
+      {icon:'🎮',name:'IGDB — Internet Game Database',url:'igdb.com',info:'Game metadata, release dates, genres, platforms, aggregated scores'},
+      {icon:'💰',name:'VGPC — Video Game Price Charting',url:'pricecharting.com',info:'Sealed/CIB/loose prices for 30,000+ games, graded WATA values'},
+      {icon:'🏆',name:'Metacritic / OpenCritic',url:'metacritic.com',info:'Review aggregation, critic scores, user scores, release context'},
+      {icon:'📦',name:'WATA Games Certification',url:'watagames.com',info:'Sealed game grading, print run population, auction records'},
+      {icon:'📊',name:'Newzoo Games Market Report',url:'newzoo.com',info:'Global games market size, platform splits, mobile vs PC/console'},
+          {icon:'📖',name:'Wikipedia — Video Games',url:'en.wikipedia.org',info:'Game release history, developer/publisher background, genre classification, critical reception, sales figures, sequel lineage'},
+      {icon:'📖',name:'Wikipedia — Video Game History',url:'en.wikipedia.org',info:'Game release history, developer background, genre classification, critical reception, global sales figures, sequel lineage'},
+    ],
+    dims:['monetary','rarity','heritage','condition','aesthetic','provenance'],
+    live:false,
+  },
+  weapons: {
+    sources:[
+      {icon:'🪖',name:'Jane\'s Defence Equipment',url:'janes.com',info:'Military hardware specifications, country operators, production numbers'},
+      {icon:'🏛️',name:'Royal Armouries Collection',url:'royalarmouries.org',info:'Historical weapons database, metallurgical analysis, period attribution'},
+      {icon:'🔫',name:'NRA National Firearms Museum',url:'nrafoundation.org',info:'Antique firearm identification, maker marks, production dates'},
+      {icon:'📜',name:'SIPRI Arms Transfers Database',url:'sipri.org/databases/armstransfers',info:'International arms trade data, export licenses, conflict use records'},
+      {icon:'💰',name:'Rock Island Auction — Firearms',url:'rockislandauction.com',info:'Antique & collectible weapons auction results, rarity assessments'},
+          {icon:'📖',name:'Wikipedia — Military History',url:'en.wikipedia.org',info:'Weapon design history, conflicts used in, technical specifications, notable variants, manufacturing country, decommission date'},
+      {icon:'📖',name:'Wikipedia — Military History',url:'en.wikipedia.org',info:'Weapon design origin, conflicts used in, technical specifications, notable variants, manufacturing country, decommission date'},
+    ],
+    dims:['monetary','heritage','historical','rarity','scientific','legal'],
+    live:false,
+  },
+  chemistry: {
+    sources:[
+      {icon:'🧪',name:'PubChem — NIH Compound Database',url:'pubchem.ncbi.nlm.nih.gov',info:'116M+ substances: structure, properties, safety data, biological activity'},
+      {icon:'⚗️',name:'NIST Chemistry WebBook',url:'webbook.nist.gov',info:'Thermophysical properties, spectra, reaction data, standard references'},
+      {icon:'🔬',name:'Royal Society of Chemistry',url:'rsc.org',info:'Element properties, compound synthesis, safety classifications'},
+      {icon:'🌍',name:'ECHA — European Chemicals Agency',url:'echa.europa.eu',info:'REACH registration, hazard classification, restricted substances list'},
+          {icon:'📖',name:'Wikipedia — Chemistry & Elements',url:'en.wikipedia.org',info:'Element/compound discovery, Nobel Prize context, industrial uses, safety classification, reaction mechanisms, allotrope descriptions'},
+      {icon:'📖',name:'Wikipedia — Chemistry & Elements',url:'en.wikipedia.org',info:'Element discovery, Nobel Prize context, industrial uses, safety classification, reaction mechanisms, allotrope descriptions'},
+    ],
+    dims:['scientific','industrial','rarity','monetary','legal','ecological'],
+    live:false,
+  },
+  hotels: {
+    sources:[
+      {icon:'⭐',name:'Forbes Travel Guide',url:'forbestravelguide.com',info:'5-star inspection criteria, service standards, facility requirements'},
+      {icon:'🏨',name:'STR Hotel Data — CoStar',url:'str.com',info:'ADR, RevPAR, occupancy rates by market, competitive set benchmarking'},
+      {icon:'🌍',name:'Booking.com / Expedia Market Data',url:'booking.com',info:'Real-time rate intelligence, guest review scores, room type pricing'},
+      {icon:'💰',name:'HVS Hotel Valuation',url:'hvs.com',info:'Hotel asset valuations, cap rates, development cost per key by market'},
+      {icon:'🏛️',name:'Historic Hotels of the World',url:'historichotels.org',info:'Heritage designations, building age, architectural period, renovation records'},
+          {icon:'📖',name:'Wikipedia — Hospitality & Hotels',url:'en.wikipedia.org',info:'Hotel chain history, founding year, flagship properties, brand standards, notable guests, architectural heritage'},
+      {icon:'📖',name:'Wikipedia — Hospitality Industry',url:'en.wikipedia.org',info:'Hotel chain history, founding year, flagship properties, brand standards, notable guests, architectural heritage'},
+    ],
+    dims:['monetary','heritage','rarity','aesthetic','tourism','condition'],
+    live:false,
+  },
+  music: {
+    sources:[
+      {icon:'🎵',name:'AllMusic Database',url:'allmusic.com',info:'Artist discographies, album ratings, genre classifications, band lineups, release history'},
+      {icon:'🎸',name:'Vintage Guitar Price Guide',url:'vintageguitar.com',info:'Instrument valuations by brand/year/condition, auction results, collector demand'},
+      {icon:'📀',name:'Discogs Marketplace',url:'discogs.com',info:'Vinyl/CD/cassette catalog, pressing variants, collector prices, label history'},
+      {icon:'🏆',name:'Grammy Awards Archive',url:'grammy.com',info:'Award history by artist/album, nomination records, cultural impact data'},
+      {icon:'💰',name:'Reverb.com Instrument Pricing',url:'reverb.com',info:'Real-time used instrument prices, vintage gear valuations, market trends'},
+      {icon:'📖',name:'Wikipedia — Music History',url:'en.wikipedia.org',info:'Artist biography, genre origins, music theory, instrument history, cultural movements'},
+    ],
+    dims:['monetary','heritage','rarity','aesthetic','historical','condition'],
+    live:false,
+  },
+  aviation: {
+    sources:[
+      {icon:'✈️',name:'Jane's All the World's Aircraft',url:'janes.com/aircraft',info:'Aircraft specifications, performance data, operator lists, production numbers'},
+      {icon:'📊',name:'ch-aviation Fleet Database',url:'ch-aviation.com',info:'Global airline fleets, aircraft age, lease data, route networks'},
+      {icon:'💰',name:'AVAC Aircraft Valuations',url:'avac.us',info:'Commercial aircraft appraisals, residual value forecasts, lease rates'},
+      {icon:'🛫',name:'Planespotters.net',url:'planespotters.net',info:'Individual aircraft histories, registration data, photo archives'},
+      {icon:'📖',name:'Wikipedia — Aviation History',url:'en.wikipedia.org',info:'Aircraft design history, aviation milestones, manufacturer backgrounds, accident records'},
+    ],
+    dims:['monetary','heritage','rarity','scientific','historical','condition'],
+    live:false,
+  },
+  biology: {
+    sources:[
+      {icon:'🧬',name:'NCBI — GenBank',url:'ncbi.nlm.nih.gov',info:'DNA sequences, protein structures, genomic data, taxonomic classifications'},
+      {icon:'🔬',name:'PubMed Life Sciences',url:'pubmed.ncbi.nlm.nih.gov',info:'Peer-reviewed biology research, cell biology, genetics, molecular biology'},
+      {icon:'🌱',name:'Encyclopedia of Life (EOL)',url:'eol.org',info:'1.9M+ species profiles, morphology, ecology, distribution, behavior'},
+      {icon:'📊',name:'GBIF — Global Biodiversity',url:'gbif.org',info:'Species occurrence records, geographic range, population data'},
+      {icon:'📖',name:'Wikipedia — Biology & Life Sciences',url:'en.wikipedia.org',info:'Species taxonomy, biological processes, evolutionary history, cellular mechanisms'},
+    ],
+    dims:['scientific','rarity','ecological','heritage','historical','legal'],
+    live:false,
+  },
+  software: {
+    sources:[
+      {icon:'💻',name:'G2 Software Reviews',url:'g2.com',info:'Enterprise software ratings, pricing tiers, feature comparisons, user counts'},
+      {icon:'📊',name:'Statista Software Market',url:'statista.com/software',info:'Market size by segment, revenue data, growth forecasts, vendor shares'},
+      {icon:'🔍',name:'Product Hunt',url:'producthunt.com',info:'App launches, upvotes, maker profiles, category rankings, launch dates'},
+      {icon:'💰',name:'AppFollow / Sensor Tower',url:'appfollow.io',info:'App store rankings, revenue estimates, download counts, review analytics'},
+      {icon:'📖',name:'Wikipedia — Software History',url:'en.wikipedia.org',info:'Software development history, programming language origins, company backgrounds, OS evolution'},
+    ],
+    dims:['monetary','scientific','rarity','heritage','industrial','aesthetic'],
+    live:false,
+  },
+  oceanography: {
+    sources:[
+      {icon:'🌊',name:'NOAA Ocean Data',url:'noaa.gov/ocean',info:'Sea temperature, salinity, current data, tidal measurements, bathymetric charts'},
+      {icon:'🐋',name:'Ocean Biodiversity Info System',url:'obis.org',info:'Marine species occurrence, depth records, global distribution maps'},
+      {icon:'📡',name:'Copernicus Marine Service',url:'marine.copernicus.eu',info:'Satellite ocean observations, sea level rise data, Arctic/Antarctic monitoring'},
+      {icon:'🗺️',name:'GEBCO Ocean Mapping',url:'gebco.net',info:'Global seafloor topography, underwater mountain ranges, trench depths'},
+      {icon:'📖',name:'Wikipedia — Oceanography',url:'en.wikipedia.org',info:'Ocean zones, current systems, tidal mechanics, deep sea phenomena, exploration history'},
+    ],
+    dims:['scientific','ecological','rarity','heritage','historical','aesthetic'],
+    live:false,
+  },
+  sports: {
+    sources:[
+      {icon:'🏆',name:'Sports Reference Databases',url:'sports-reference.com',info:'Complete stats for MLB/NBA/NFL/soccer, player records, team histories'},
+      {icon:'💰',name:'StockX Sports Collectibles',url:'stockx.com',info:'Trading card prices, jersey valuations, sneaker markets, memorabilia data'},
+      {icon:'🃏',name:'PSA Card Grading',url:'psacard.com',info:'Sports card authentication, population reports, graded card auction values'},
+      {icon:'🎽',name:'Transfermarkt',url:'transfermarkt.com',info:'Football player market values, transfer fees, contract data, club valuations'},
+      {icon:'📖',name:'Wikipedia — Sports History',url:'en.wikipedia.org',info:'Sport origins, record holders, championship histories, athlete biographies, rule evolution'},
+    ],
+    dims:['monetary','heritage','rarity','historical','condition','provenance'],
+    live:false,
+  },
+  agriculture: {
+    sources:[
+      {icon:'🌾',name:'FAO Agricultural Data',url:'fao.org/faostat',info:'Crop production by country, yield per hectare, trade volumes, price indices'},
+      {icon:'📊',name:'USDA World Agricultural Supply',url:'usda.gov/wasde',info:'Monthly commodity forecasts: wheat, corn, soy, cotton, rice prices'},
+      {icon:'🌱',name:'CGIAR Research Centers',url:'cgiar.org',info:'Seed variety databases, drought resistance ratings, yield improvement data'},
+      {icon:'💰',name:'CME Agricultural Futures',url:'cmegroup.com/agriculture',info:'Live commodity futures: corn, wheat, soybeans, cattle, hogs'},
+      {icon:'📖',name:'Wikipedia — Agriculture & Crops',url:'en.wikipedia.org',info:'Crop domestication history, farming techniques, irrigation systems, agrarian societies'},
+    ],
+    dims:['monetary','ecological','scientific','heritage','industrial','historical'],
+    live:true,
+  },
+  cinema: {
+    sources:[
+      {icon:'🎬',name:'IMDb Pro',url:'imdb.com',info:'Box office data, budget figures, cast/crew, production details, awards history'},
+      {icon:'🍅',name:'Rotten Tomatoes / Metacritic',url:'rottentomatoes.com',info:'Critical scores, audience ratings, review aggregation, award nominations'},
+      {icon:'💰',name:'The Numbers Box Office',url:'the-numbers.com',info:'Worldwide grosses, opening weekends, home video revenues, franchise performance'},
+      {icon:'🏆',name:'Academy Awards Archive',url:'oscars.org',info:'Oscar history, nomination records, craft categories, historical winners'},
+      {icon:'📖',name:'Wikipedia — Film & Cinema',url:'en.wikipedia.org',info:'Film history, director biographies, movement classifications, production context, cultural impact'},
+    ],
+    dims:['monetary','aesthetic','heritage','rarity','historical','provenance'],
+    live:false,
+  },
+  fitness: {
+    sources:[
+      {icon:'🏋️',name:'American College of Sports Medicine',url:'acsm.org',info:'Exercise science standards, equipment safety ratings, training protocols'},
+      {icon:'💰',name:'Fitness Equipment Reviews',url:'garage-gym-reviews.com',info:'Equipment pricing, durability ratings, brand comparisons, resale values'},
+      {icon:'📊',name:'IHRSA Health Club Data',url:'ihrsa.org',info:'Gym industry statistics, equipment market size, membership trend data'},
+      {icon:'📖',name:'Wikipedia — Fitness & Exercise',url:'en.wikipedia.org',info:'Exercise history, muscle anatomy, training methodology, Olympic sport origins'},
+    ],
+    dims:['monetary','scientific','heritage','condition','aesthetic','industrial'],
+    live:false,
+  },
+  maritime: {
+    sources:[
+      {icon:'🚢',name:'Lloyd's Register of Shipping',url:'lr.org',info:'Ship classification, tonnage records, safety certificates, vessel histories'},
+      {icon:'📊',name:'Clarksons Research',url:'clarksons.com',info:'Ship values, charter rates, newbuilding prices, fleet statistics by type'},
+      {icon:'🗺️',name:'MarineTraffic AIS Data',url:'marinetraffic.com',info:'Vessel tracking, port calls, speed data, route histories'},
+      {icon:'💰',name:'VesselsValue',url:'vesselsvalue.com',info:'Real-time ship valuations, demolition prices, sale & purchase records'},
+      {icon:'📖',name:'Wikipedia — Maritime & Naval History',url:'en.wikipedia.org',info:'Ship design evolution, naval battle history, maritime trade routes, famous vessels'},
+    ],
+    dims:['monetary','heritage','historical','rarity','industrial','condition'],
+    live:false,
+  },
+  mythology: {
+    sources:[
+      {icon:'🗿',name:'Theoi Greek Mythology',url:'theoi.com',info:'Complete Greek divine genealogies, myth variants, ancient source citations'},
+      {icon:'📜',name:'Sacred Texts Archive',url:'sacred-texts.com',info:'Primary mythological texts: Norse Eddas, Egyptian Book of the Dead, Vedas'},
+      {icon:'🏛️',name:'Oxford Classical Dictionary',url:'oxfordre.com/classics',info:'Scholarly articles on mythology, religion, iconography, cult practices'},
+      {icon:'🌍',name:'Encyclopedia Mythica',url:'pantheon.org',info:'Cross-cultural mythology database: 7,000+ articles on myths and legends'},
+      {icon:'📖',name:'Wikipedia — World Mythology',url:'en.wikipedia.org',info:'Pantheon descriptions, creation myths, hero archetypes, comparative mythology, cultural context'},
+    ],
+    dims:['heritage','historical','rarity','aesthetic','scientific','legal'],
+    live:false,
+  },
+  climate: {
+    sources:[
+      {icon:'🌡️',name:'NASA GISS Surface Temperature',url:'data.giss.nasa.gov',info:'Global temperature records since 1880, anomaly maps, station data'},
+      {icon:'📊',name:'IPCC Climate Reports',url:'ipcc.ch',info:'Scientific consensus reports, emissions scenarios, regional impact projections'},
+      {icon:'🌍',name:'Copernicus Climate Change Service',url:'climate.copernicus.eu',info:'European climate data, monthly bulletins, extreme event records'},
+      {icon:'⚡',name:'Our World in Data — Climate',url:'ourworldindata.org/climate',info:'CO2 emissions by country, energy mix data, policy effectiveness metrics'},
+      {icon:'📖',name:'Wikipedia — Climate & Meteorology',url:'en.wikipedia.org',info:'Climate system mechanics, historical climate events, weather phenomena, biome descriptions'},
+    ],
+    dims:['scientific','ecological','historical','heritage','legal','industrial'],
+    live:false,
+  },
+  crafts: {
+    sources:[
+      {icon:'🧶',name:'Etsy Market Intelligence',url:'etsy.com',info:'Handcraft pricing by category, seller competition, trending items, buyer demographics'},
+      {icon:'🏺',name:'World Crafts Council',url:'worldcraftscouncil.org',info:'Traditional craft documentation, master artisan recognition, endangered crafts'},
+      {icon:'💰',name:'1stDibs Decorative Arts',url:'1stdibs.com',info:'High-end craft and decorative art pricing, provenance requirements, dealer data'},
+      {icon:'📖',name:'Wikipedia — Crafts & Textile Arts',url:'en.wikipedia.org',info:'Craft tradition history, technique descriptions, regional styles, material origins'},
+    ],
+    dims:['monetary','heritage','rarity','aesthetic','historical','condition'],
+    live:false,
+  },
+  education: {
+    sources:[
+      {icon:'🎓',name:'QS World University Rankings',url:'topuniversities.com',info:'University rankings, subject scores, employer reputation, research citations'},
+      {icon:'📊',name:'OECD Education at a Glance',url:'oecd.org/education',info:'Global education statistics, graduation rates, return on education investment'},
+      {icon:'💰',name:'Coursera / edX Market Data',url:'coursera.org',info:'Online course pricing, completion rates, job placement outcomes by certification'},
+      {icon:'📖',name:'Wikipedia — Education Systems',url:'en.wikipedia.org',info:'Educational institution histories, degree system origins, academic discipline development'},
+    ],
+    dims:['monetary','scientific','heritage','historical','rarity','aesthetic'],
+    live:false,
+  },
+  physics: {
+    sources:[
+      {icon:'⚛️',name:'CERN Document Server',url:'cds.cern.ch',info:'Particle physics papers, detector data, experimental results, Nobel Prize research'},
+      {icon:'🔬',name:'APS Physics Journals',url:'journals.aps.org',info:'Physical Review publications, breakthrough discoveries, theoretical frameworks'},
+      {icon:'📊',name:'NIST Physical Constants',url:'nist.gov/physics',info:'Fundamental constants, measurement standards, SI unit definitions'},
+      {icon:'📖',name:'Wikipedia — Physics & Quantum Science',url:'en.wikipedia.org',info:'Physics history, theory explanations, famous experiments, Nobel laureate biographies'},
+    ],
+    dims:['scientific','historical','heritage','rarity','aesthetic','industrial'],
+    live:false,
+  },
+  dental: {
+    sources:[
+      {icon:'🦷',name:'ADA — American Dental Association',url:'ada.org',info:'Dental procedure codes, material standards, treatment guidelines, device classifications'},
+      {icon:'💰',name:'Healthcare Bluebook — Dental',url:'healthcarebluebook.com',info:'Fair price estimates for dental procedures by region, insurance benchmark data'},
+      {icon:'🔬',name:'Cochrane Oral Health',url:'cochrane.org/oral-health',info:'Evidence-based dental treatment reviews, clinical trial summaries'},
+      {icon:'📖',name:'Wikipedia — Dentistry & Oral Health',url:'en.wikipedia.org',info:'Dental history, tooth anatomy, procedure descriptions, material science, orthodontics'},
+    ],
+    dims:['monetary','scientific','heritage','condition','legal','aesthetic'],
+    live:false,
+  },
+  cybersecurity: {
+    sources:[
+      {icon:'🔐',name:'CVE — MITRE Vulnerability Database',url:'cve.mitre.org',info:'Common Vulnerabilities and Exposures catalog, severity scores, patch status'},
+      {icon:'🛡️',name:'NIST Cybersecurity Framework',url:'nist.gov/cyberframework',info:'Security control standards, risk assessment methodology, compliance frameworks'},
+      {icon:'📊',name:'Gartner Security Market Data',url:'gartner.com/security',info:'Cybersecurity product rankings, market size, vendor evaluations, Magic Quadrant'},
+      {icon:'📖',name:'Wikipedia — Cybersecurity',url:'en.wikipedia.org',info:'Hacking history, cryptography origins, famous breaches, security protocol development'},
+    ],
+    dims:['scientific','monetary','legal','rarity','industrial','historical'],
+    live:false,
+  },
+  baby: {
+    sources:[
+      {icon:'👶',name:'BabyCenter Product Safety',url:'babycenter.com',info:'Product recalls, safety ratings, developmental milestone context, expert reviews'},
+      {icon:'💰',name:'Consumer Reports — Baby',url:'consumerreports.org',info:'Car seat crash test scores, stroller ratings, crib safety standards, price comparisons'},
+      {icon:'📊',name:'Juvenile Products Manufacturers Assoc.',url:'jpma.org',info:'Safety certification (JPMA), voluntary standards, product category data'},
+      {icon:'📖',name:'Wikipedia — Child Development',url:'en.wikipedia.org',info:'Developmental psychology, pediatric health standards, product safety history'},
+    ],
+    dims:['monetary','scientific','legal','condition','heritage','aesthetic'],
+    live:false,
+  },
+  plastics: {
+    sources:[
+      {icon:'🧪',name:'Plastics Industry Association',url:'plasticsindustry.org',info:'Resin pricing, material properties, recycling codes, production statistics'},
+      {icon:'💰',name:'ICIS Polymer Pricing',url:'icis.com/polymers',info:'Live polymer prices: HDPE, PET, PP, PVC, ABS — global market data'},
+      {icon:'🌍',name:'Ellen MacArthur Foundation — Plastics',url:'ellenmacarthurfoundation.org',info:'Plastic lifecycle data, recycling rates, ocean pollution statistics'},
+      {icon:'📖',name:'Wikipedia — Polymers & Plastics',url:'en.wikipedia.org',info:'Plastic discovery history, chemical composition, environmental impact, industrial applications'},
+    ],
+    dims:['monetary','industrial','ecological','scientific','legal','rarity'],
+    live:true,
+  },
+  paranormal: {
+    sources:[
+      {icon:'🛸',name:'MUFON UFO Database',url:'mufon.com',info:'UFO sighting reports, witness testimonies, geographic clustering, investigation findings'},
+      {icon:'🔬',name:'Scientific Coalition for UAP Studies',url:'explorescu.org',info:'Peer-reviewed UAP research, sensor data analysis, government declassified reports'},
+      {icon:'📜',name:'Fortean Times Archive',url:'forteantimes.com',info:'Historical paranormal documentation, cryptid reports, anomalous phenomena catalog'},
+      {icon:'📖',name:'Wikipedia — Paranormal & Unexplained',url:'en.wikipedia.org',info:'Paranormal phenomena history, psychological explanations, famous cases, cultural impact'},
+    ],
+    dims:['scientific','heritage','historical','rarity','aesthetic','legal'],
+    live:false,
+  },
+
+};
+
+/* Fallback for categories not in ARCHIVE_DB */
+const DEFAULT_ARCHIVE = {
+  sources:[
+    {icon:'📖',name:'Wikipedia — General Knowledge',url:'en.wikipedia.org',info:'Encyclopedic reference: taxonomy, history, cultural context, technical specs, geographic data, citation network'},
+    {icon:'📚',name:'Google Scholar',url:'scholar.google.com',info:'Academic publications, citation counts, open access papers'},
+    {icon:'🔍',name:'Wolfram Alpha',url:'wolframalpha.com',info:'Computational knowledge, factual data, unit conversions, statistics'},
+    {icon:'🌐',name:'Britannica Encyclopedia',url:'britannica.com',info:'Expert-curated encyclopedic articles, peer-reviewed content, historical depth'},
+  ],
+  dims:['monetary','heritage','rarity','scientific','aesthetic','legal'],
+  live:false,
+};
+
+/* ===== CATEGORIES LIST ===== */
+const CATS=[
+  /* ── TIER 1: HIGHEST GLOBAL DEMAND ── */
+  {key:'food',e:'🍕',n:'Food & Cuisine',d:'Dishes, restaurants, ingredients + prices'},
+  {key:'cars',e:'🚗',n:'Vehicles',d:'Cars, specs, market value'},
+  {key:'electronics',e:'⚡',n:'Electronics',d:'Devices, components, specs + prices'},
+  {key:'fashion',e:'👗',n:'Fashion',d:'Brands, trends, retail prices'},
+  {key:'medicine',e:'💊',n:'Medicine',d:'Drugs, devices, dosage info'},
+  {key:'realestate',e:'🏠',n:'Real Estate',d:'Land & buildings by region'},
+  {key:'sports',e:'🏆',n:'Sports & Collectibles',d:'Cards, memorabilia, player values'},
+  {key:'software',e:'💻',n:'Software & Apps',d:'Apps, platforms, SaaS pricing'},
+  {key:'baby',e:'👶',n:'Baby & Kids Products',d:'Safety ratings, pricing, development'},
+  {key:'fitness',e:'🏋️',n:'Fitness Equipment',d:'Gym gear, ratings, resale values'},
+  /* ── TIER 2: HIGH DEMAND ── */
+  {key:'animals',e:'🐾',n:'Animals',d:'Wildlife, pets, livestock + prices'},
+  {key:'plants',e:'🌿',n:'Plants & Trees',d:'Botany, rarity, heritage + value'},
+  {key:'music',e:'🎵',n:'Music & Instruments',d:'Gear, vinyl, artist data + prices'},
+  {key:'cinema',e:'🎬',n:'Film & Cinema',d:'Movies, box office, awards, history'},
+  {key:'gaming',e:'🎮',n:'Gaming',d:'Games, consoles, collectibles + prices'},
+  {key:'art',e:'🎨',n:'Art & Paintings',d:'Artists, movements, auction estimates'},
+  {key:'gems',e:'💎',n:'Gems & Jewelry',d:'Stones, purity, market prices'},
+  {key:'currency',e:'💵',n:'Currency',d:'Banknotes, coins, crypto + rates'},
+  {key:'metals',e:'🥇',n:'Metals',d:'Gold, copper, silver — live prices'},
+  {key:'energy',e:'⛽',n:'Oil & Energy',d:'Petroleum, gas — live prices'},
+  /* ── TIER 3: SPECIALIST DEMAND ── */
+  {key:'agriculture',e:'🌾',n:'Agriculture & Crops',d:'Commodities, seeds, farm pricing'},
+  {key:'construction',e:'🏗️',n:'Construction',d:'Building materials by country'},
+  {key:'architecture',e:'🏛️',n:'Architecture',d:'Buildings, styles, cost per m²'},
+  {key:'books',e:'📚',n:'Books & Manuscripts',d:'Rare editions + collector value'},
+  {key:'artifacts',e:'🏺',n:'Artifacts',d:'Historical objects + multi-layer value'},
+  {key:'palaces',e:'🏰',n:'Palaces & Castles',d:'Historic estates + UNESCO value'},
+  {key:'hotels',e:'🏨',n:'Hotels',d:'Hospitality, stars + price ranges'},
+  {key:'aviation',e:'✈️',n:'Aviation',d:'Aircraft specs, fleet, valuations'},
+  {key:'maritime',e:'🚢',n:'Maritime & Ships',d:'Vessel history, charter, valuations'},
+  {key:'plastics',e:'🧪',n:'Plastics & Polymers',d:'Resin types, prices, recycling'},
+  /* ── TIER 4: KNOWLEDGE & SCIENCE ── */
+  {key:'biology',e:'🧬',n:'Biology & Life Sciences',d:'Genomics, species, ecology'},
+  {key:'chemistry',e:'⚗️',n:'Chemistry',d:'Compounds, elements, safety data'},
+  {key:'physics',e:'⚛️',n:'Physics & Quantum',d:'Particles, constants, experiments'},
+  {key:'space',e:'🌌',n:'Space & Cosmos',d:'Galaxies, stars — precise data'},
+  {key:'oceanography',e:'🌊',n:'Oceanography',d:'Ocean data, marine phenomena'},
+  {key:'climate',e:'🌡️',n:'Climate & Weather',d:'Temperature data, IPCC reports'},
+  {key:'cybersecurity',e:'🔐',n:'Cybersecurity',d:'Vulnerabilities, tools, frameworks'},
+  {key:'education',e:'🎓',n:'Education & Certificates',d:'Universities, rankings, ROI'},
+  {key:'dental',e:'🦷',n:'Dental & Medical Devices',d:'Procedures, devices, pricing'},
+  {key:'psychology',e:'🧠',n:'Psychology',d:'Concepts, disorders, theories'},
+  /* ── TIER 5: CULTURE & HERITAGE ── */
+  {key:'religion',e:'☪️',n:'Religion',d:'Symbols, texts, traditions'},
+  {key:'sociology',e:'👥',n:'Sociology',d:'Social phenomena, demographics'},
+  {key:'mythology',e:'🗿',n:'Mythology & Legends',d:'Pantheons, myths, symbolism'},
+  {key:'flags',e:'🚩',n:'Flags & Nations',d:'Countries, symbolism, context'},
+  {key:'crafts',e:'🧶',n:'Crafts & Textiles',d:'Handmade arts, traditional crafts'},
+  {key:'marine',e:'🐠',n:'Marine Life',d:'Fish, coral, sea creatures + prices'},
+  {key:'weapons',e:'🪖',n:'Military & Weapons',d:'Historical arms, specifications'},
+  {key:'ads',e:'📢',n:'Advertising',d:'Ad boards, CPM/CPC market data'},
+  {key:'paranormal',e:'🛸',n:'UFO & Paranormal',d:'UAP reports, unexplained phenomena'},
+];
+
+const DMETA={
+  monetary:     {e:'💰',l:'Market Value',      c:'#f59e0b'},
+  heritage:     {e:'🏛️',l:'Heritage Value',   c:'#a78bfa'},
+  rarity:       {e:'🔮',l:'Rarity',             c:'#00d4ff'},
+  scientific:   {e:'🔬',l:'Scientific Value',   c:'#22c55e'},
+  aesthetic:    {e:'✨',l:'Aesthetic Value',    c:'#ec4899'},
+  legal:        {e:'⚖️',l:'Legal Protection',  c:'#f87171'},
+  medicinal:    {e:'💊',l:'Medicinal Value',    c:'#34d399'},
+  ecological:   {e:'🌍',l:'Ecological Impact',  c:'#4ade80'},
+  numismatic:   {e:'🪙',l:'Numismatic Value',   c:'#fbbf24'},
+  historical:   {e:'📜',l:'Historical Depth',   c:'#c084fc'},
+  condition:    {e:'📊',l:'Condition Score',    c:'#60a5fa'},
+  architectural:{e:'🏗️',l:'Arch. Value',       c:'#fb923c'},
+  tourism:      {e:'🗺️',l:'Tourism Potential', c:'#2dd4bf'},
+  ethical:      {e:'🕊️',l:'Ethical Standing',  c:'#86efac'},
+  provenance:   {e:'📋',l:'Provenance',         c:'#c4b5fd'},
+  industrial:   {e:'⚙️',l:'Industrial Demand', c:'#94a3b8'},
+  investment:   {e:'📈',l:'Investment Grade',   c:'#fde68a'},
+  purity:       {e:'✅',l:'Purity / Quality',   c:'#6ee7b7'},
+};
+
+
+function getArchive(cat){ return ARCHIVE_DB[cat]||DEFAULT_ARCHIVE; }
+
+function getDims(cat){const a=getArchive(cat);return a.dims;}
+
+const TIERS=[
+  {label:'&#128293; HIGHEST DEMAND',tcls:'t1',keys:['food','cars','electronics','fashion','medicine','realestate','sports','software','baby','fitness']},
+  {label:'&#128200; HIGH DEMAND',tcls:'t2',keys:['animals','plants','music','cinema','gaming','art','gems','currency','metals','energy']},
+  {label:'&#128295; SPECIALIST',tcls:'t3',keys:['agriculture','construction','architecture','books','artifacts','palaces','hotels','aviation','maritime','plastics']},
+  {label:'&#128300; SCIENCE & TECH',tcls:'t4',keys:['biology','chemistry','physics','space','oceanography','climate','cybersecurity','education','dental','psychology']},
+  {label:'&#127963; CULTURE & HERITAGE',tcls:'t5',keys:['religion','sociology','mythology','flags','crafts','marine','weapons','ads','paranormal']},
+];
+let globalRank=1;
+TIERS.forEach(tier=>{
+  /* Tier label spanning all 3 cols */
+  const lbl=document.createElement('div');
+  lbl.className='tier-sep '+tier.tcls;
+  lbl.innerHTML=tier.label+' <span></span>';
+  cg.appendChild(lbl);
+  /* Cards */
+  tier.keys.forEach(key=>{
+    const cat=CATS.find(c=>c.key===key);
+    if(!cat)return;
+    const rank=globalRank++;
+    const d=document.createElement('div');
+    d.className='cat-card '+tier.tcls;
+    d.innerHTML='<div class="cat-rank">#'+rank+'</div><div class="be">'+cat.e+'</div><div class="cn">'+cat.n+'</div>';
+    d.onclick=()=>{
+      switchPage('scan',document.querySelector('.nav-item'));
+      document.querySelectorAll('.cat-chip').forEach(ch=>ch.classList.remove('active'));
+      const chip=document.querySelector('[data-cat="'+cat.key+'"]');
+      if(chip){chip.classList.add('active');chip.scrollIntoView({behavior:'smooth',inline:'center'});}
+      selCat=cat.key;
+    };
+    cg.appendChild(d);
+  });
+});
+
+/* Build archive info page */
+const ail=document.getElementById('archive-info-list');
+CATS.forEach(c=>{
+  const arc=ARCHIVE_DB[c.key];
+  if(!arc)return;
+  const div=document.createElement('div');
+  div.className='arc-info-card';
+  const tags=arc.sources.map(s=>'<span class="arc-info-tag">'+s.icon+' '+s.name+'</span>').join('');
+  div.innerHTML='<div class="arc-info-cat">'+c.e+' '+c.key.toUpperCase()+'</div><div class="arc-info-title">'+c.n+'</div><div class="arc-info-sources">'+tags+'</div>';
+  ail.appendChild(div);
+});
+
+/* ===== NAV ===== */
+
+function sp(n,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  if(el)el.classList.add('active');
+  if(n==='hist')renderFullHist();
+}
+const fi=document.getElementById('file-input');
+const dz=document.getElementById('drop-zone');
+const pi=document.getElementById('preview-img');
+const dph=document.getElementById('drop-ph');
+const tgt=document.getElementById('tgt');
+fi.addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0]);});
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--cyan)';});
+dz.addEventListener('dragleave',()=>dz.style.borderColor='');
+dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))loadImg(f);});
+function loadImg(f){
+  imgMime=f.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=ev=>{
+    imgB64=ev.target.result.split(',')[1];
+    pi.src=ev.target.result;pi.style.display='block';
+    dph.style.display='none';tgt.style.display='none';
+    dz.classList.add('has-image');
+    document.getElementById('btn-scan').disabled=false;
+    document.getElementById('results-wrap').style.display='none';
+    document.getElementById('err-box').classList.remove('show');
+  };
+  r.readAsDataURL(f);
+}
+function openCamera(){fi.setAttribute('capture','environment');fi.click();}
+
+const cs=document.getElementById('cat-scroll');
+function mkChip(key,e,n){
+  const d=document.createElement('div');
+  d.className='chip'+(key==='auto'?' active':'');d.dataset.cat=key;
+  d.textContent=e+' '+n;
+  d.onclick=()=>{document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));d.classList.add('active');selCat=key;};
+  cs.appendChild(d);
+}
+mkChip('auto','&#129302;','Auto');
+CATS.forEach(c=>mkChip(c.key,c.e,c.n));
+
+function buildPrompt(cat){
+  const arc=getArchive(cat);
+  const info=CATS.find(c=>c.key===cat);
+  const ctx=info?'Category: "'+info.n+'"':'Auto-detect category';
+  const dims=arc.dims;
+  const needsLive=arc.live;
+  const srcInstr=arc.sources.map(s=>'- '+s.name+' ('+s.url+'): '+s.info).join('\n');
+  const dimBlock=dims.map(d=>'"'+d+'":{"score":0,"note":"","archive_ref":""}').join(',');
+  const deep=document.getElementById('t-deep').classList.contains('on');
+  return 'You are SCANIQ, the world\'s most advanced visual intelligence system.\n'+ctx+'\n\n'+
+    '=== KNOWLEDGE ARCHIVES ===\nReason with expert knowledge from these authoritative sources:\n'+srcInstr+'\n\n'+
+    'Apply their classification standards, grading systems, and pricing methodologies precisely.\n\n'+
+    '=== OUTPUT: PURE JSON ONLY — NO MARKDOWN ===\n'+
+    '{\n"name":"",\n"subtitle":"scientific name / model number / catalog ID",\n"category":"",\n"category_emoji":"",\n'+
+    '"confidence":"High|Medium|Low",\n'+
+    '"price":{"value":"price or N/A","unit":"per unit/kg/m2 etc","note":"retail/auction/estimated","is_live_needed":'+needsLive+'},\n'+
+    '"description":"'+(deep?'4-5':'2-3')+' expert sentences",\n'+
+    '"details":[{"label":"Classification / ID","value":"e.g. IUCN LC · NGC MS65"},{"label":"Origin","value":""},{"label":"Era / Date","value":""},{"label":"Material","value":""}],\n'+
+    '"value_matrix":{'+dimBlock+'},\n'+
+    '"overall_value_score":0,\n"overall_verdict":"short punchy phrase",\n"overall_explanation":"1-2 sentences",\n'+
+    '"legal_status":"cite laws if applicable, else empty",\n"market_note":"market dynamics",\n'+
+    '"facts":["fact 1","fact 2","fact 3"'+(deep?',"fact 4","fact 5"':'')+']\n}\n\n'+
+    'MATRIX: score 0-10 integer, note=one precise sentence with archive reference, archive_ref=source name, overall_value_score=weighted 0-100';
+}
+
+async function runScan(){
+  if(!imgB64)return;
+  const key=document.getElementById('api-key').value.trim()||localStorage.getItem('sq4_key')||'';
+  if(!key){showErr('Add Anthropic API key in System settings.');return;}
+  const deep=document.getElementById('t-deep').classList.contains('on');
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('results-wrap').style.display='none';
+  document.getElementById('err-box').classList.remove('show');
+  document.getElementById('btn-scan').disabled=true;
+  dz.classList.add('scanning');
+  const arc=getArchive(selCat);
+  const msgs=[['VISUAL ANALYSIS','Claude Vision mapping image'],['ARCHIVE QUERY','Cross-referencing '+arc.sources.length+' knowledge bases'],['VALUE MATRIX','Multi-dimensional assessment'],['COMPILING','Finalizing intelligence report']];
+  let mi=0;
+  const it=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('lt').textContent=msgs[mi][0];document.getElementById('ls').textContent=msgs[mi][1];},2000);
+  const needsLive=arc.live&&document.getElementById('t-live').classList.contains('on');
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:deep?4000:2000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:imgMime,data:imgB64}},
+      {type:'text',text:buildPrompt(selCat)}
+    ]}]};
+    if(needsLive)body.tools=[{type:'web_search_20250305',name:'web_search'}];
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify(body)});
+    if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'API Error '+resp.status);}
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+    const clean=raw.replace(/```json|```/g,'').trim();
+    let result;
+    try{result=JSON.parse(clean);}catch{const m=clean.match(/\{[\s\S]*\}/);if(m)result=JSON.parse(m[0]);else throw new Error('Parse error. Retry.');}
+    clearInterval(it);dz.classList.remove('scanning');document.getElementById('loading').classList.remove('show');
+    scanCount++;localStorage.setItem('sq4_cnt',scanCount);document.getElementById('scan-counter').textContent=scanCount;
+    const item={id:Date.now(),thumb:pi.src,result,ts:new Date().toISOString(),cat:selCat};
+    if(document.getElementById('t-hist').classList.contains('on')){hist.unshift(item);if(hist.length>20)hist=hist.slice(0,20);localStorage.setItem('sq4_hist',JSON.stringify(hist));}
+    renderResult(result,needsLive,selCat);renderRecentHist();
+    document.getElementById('btn-scan').disabled=false;
+  }catch(err){
+    clearInterval(it);dz.classList.remove('scanning');
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('btn-scan').disabled=false;
+    showErr(err.message);
+  }
+}
+
+function renderResult(r,isLive,cat){
+  const showMatrix=document.getElementById('t-matrix').classList.contains('on');
+  const dims=getDims(cat==='auto'?'default':cat);
+  const vm=r.value_matrix||{};
+  const ov=Math.min(100,Math.max(0,parseInt(r.overall_value_score)||0));
+  const rc=ov>=80?'var(--cyan)':ov>=60?'var(--green)':ov>=40?'#f59e0b':'var(--red)';
+  const circ=2*Math.PI*29,dash=circ*(ov/100);
+  let matrixHtml='';
+  if(showMatrix&&dims.length){
+    const rows=dims.map((dk,ri)=>{
+      const dv=vm[dk]||{score:0,note:'',archive_ref:''};
+      const meta=DMETA[dk]||{e:'·',l:dk,c:'#8ab0cc'};
+      const sc=Math.min(10,Math.max(0,parseInt(dv.score)||0));
+      const bc=sc>=8?'vs-top':sc>=6?'vs-hi':sc>=4?'vs-mid':'vs-low';
+      const full=Math.floor(sc/2),half=sc%2===1;
+      const stars=Array.from({length:5},(_,i)=>{
+        const dl=(ri*5+i)*0.05+'s';
+        if(i<full)return'<span class="st" style="animation-delay:'+dl+'">&#11088;</span>';
+        if(i===full&&half)return'<span class="st" style="animation-delay:'+dl+'">&#127775;</span>';
+        return'<span class="st" style="animation-delay:'+dl+';opacity:.12;filter:grayscale(1)">&#11088;</span>';
+      }).join('');
+      return'<div class="vm-row"><div class="vm-row-top"><div class="vm-label">'+meta.e+' '+meta.l+'</div><span class="vm-score '+bc+'">'+sc+'/10</span></div>'+
+        '<div class="vm-bar-track"><div class="vm-bar-fill" style="--tw:'+(sc*10)+'%;background:'+meta.c+'"></div></div>'+
+        '<div class="vm-stars">'+stars+'</div>'+
+        (dv.note?'<div class="vm-note">'+dv.note+(dv.archive_ref?' <em style="color:var(--violet2);font-style:normal">// '+dv.archive_ref+'</em>':'')+'</div>':'')+
+      '</div>';
+    }).join('');
+    matrixHtml='<div class="score-wrap"><div class="score-ring"><svg width="66" height="66" viewBox="0 0 66 66"><circle class="sr-bg" cx="33" cy="33" r="29"/><circle class="sr-fill" cx="33" cy="33" r="29" stroke="'+rc+'" stroke-dasharray="'+dash+' '+circ+'" stroke-dashoffset="0"/></svg><div class="sr-text" style="color:'+rc+'">'+ov+'</div></div><div class="score-info"><div class="score-eye">OVERALL VALUE</div><div class="score-verdict" style="color:'+rc+'">'+(r.overall_verdict||'—')+'</div><div class="score-exp">'+(r.overall_explanation||'')+'</div></div></div>'+
+      '<div class="vm-wrap"><div class="vm-head">VALUE MATRIX</div>'+rows+'</div>';
+  }
+  const priceHtml=r.price?.value&&r.price.value!=='N/A'?'<div class="price-card"><div class="price-eye">ESTIMATED MARKET VALUE</div><div class="price-val">'+r.price.value+'</div><div class="price-note">'+(r.price.unit||'')+' · '+(r.price.note||'')+'</div>'+(isLive?'<div class="live-pill">LIVE FEED</div>':'<div class="est-pill">ESTIMATED</div>')+'</div>':'';
+  const detsHtml=(r.details||[]).map(d=>'<div class="det-item"><div class="det-label">'+d.label+'</div><div class="det-val">'+(d.value||'—')+'</div></div>').join('');
+  const factsHtml=(r.facts||[]).map(f=>'<div class="fact"><div class="fact-dot"></div><div>'+f+'</div></div>').join('');
+  document.getElementById('result-card').innerHTML=
+    '<div class="result-header"><span class="id-badge">&#10003; IDENTIFIED</span><span style="font-size:.88rem">'+(r.category_emoji||'&#128300;')+' '+(r.category||'')+'</span><span class="conf-badge">'+(r.confidence||'')+'</span></div>'+
+    '<div class="result-body">'+
+      '<div class="result-name">'+(r.name||'Unknown')+'</div>'+
+      '<div class="result-sub">'+(r.subtitle||'')+'</div>'+
+      priceHtml+
+      '<div class="result-desc">'+(r.description||'')+'</div>'+
+      matrixHtml+
+      (r.legal_status?'<div class="legal-card"><div class="legal-eye">PROTECTION STATUS</div>'+r.legal_status+'</div>':'')+
+      (detsHtml?'<div class="det-grid">'+detsHtml+'</div>':'')+
+      (r.market_note?'<div class="market-card"><div class="market-eye">MARKET INTELLIGENCE</div><div style="font-size:.8rem;color:var(--text2)">'+r.market_note+'</div></div>':'')+
+      (factsHtml?'<div class="facts-head">KEY INTELLIGENCE</div>'+factsHtml:'')+
+    '</div>';
+  document.getElementById('results-wrap').style.display='block';
+  document.getElementById('results-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  renderScanChat(r,'default');
+}
+
+function histHtml(h,full){
+  return'<div class="hist-item" onclick="replayResult('+h.id+')"><img class="hist-thumb" src="'+h.thumb+'" alt="" onerror="this.style.display='none'"><div class="hist-info"><div class="hist-name">'+(h.result?.name||'Unknown')+'</div><div class="hist-meta">'+(h.result?.category||'')+(full?' · '+( h.result?.overall_value_score||'?'):'')+'  '+timeAgo(h.ts)+'</div></div><div class="hist-price">'+(h.result?.price?.value||'')+'</div></div>';
+}
+function renderRecentHist(){
+  const sec=document.getElementById('hist-section');
+  if(!hist.length){sec.classList.remove('show');return;}
+  sec.classList.add('show');
+  document.getElementById('hist-list').innerHTML=hist.slice(0,5).map(h=>histHtml(h,false)).join('');
+}
+function renderFullHist(){
+  const g=document.getElementById('full-hist');
+  if(!hist.length){g.innerHTML='<div style="padding:48px 0;text-align:center;color:var(--text3);font-family:JetBrains Mono,monospace;font-size:.76rem">// ARCHIVE EMPTY<br>Initialize first scan</div>';return;}
+  g.innerHTML='<div style="display:flex;flex-direction:column;gap:7px;padding-bottom:20px;">'+hist.map(h=>histHtml(h,true)).join('')+'</div>';
+}
+function replayResult(id){
+  const item=hist.find(h=>h.id===id);if(!item)return;
+  sp('scan',document.querySelector('.nav-btn'));
+  pi.src=item.thumb;pi.style.display='block';dph.style.display='none';tgt.style.display='none';
+  dz.classList.add('has-image');
+  renderResult(item.result,false,item.cat||'auto');
+  document.getElementById('results-wrap').scrollIntoView({behavior:'smooth'});
+}
+function clearHist(){if(confirm('Clear all scan history?')){hist=[];localStorage.removeItem('sq4_hist');renderRecentHist();renderFullHist();}}
+function timeAgo(iso){const d=Date.now()-new Date(iso).getTime(),m=Math.floor(d/60000);if(m<1)return'now';if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h';return Math.floor(h/24)+'d';}
+function showErr(msg){const b=document.getElementById('err-box');b.textContent='ERROR // '+msg;b.classList.add('show');b.scrollIntoView({behavior:'smooth'});}
+renderRecentHist();
+
+/* ===== MODE SWITCHING ===== */
+function switchMode(m){
+  ['scan','face','facematch','auth','nutri','ocr','qr'].forEach(id=>{
+    const el=document.getElementById('mode-'+id);if(el)el.style.display=(id===m)?'block':'none';
+    const t=document.getElementById('tab-'+id);if(t)t.classList.toggle('active',id===m);
+  });
+}
+
+/* ===== NUTRITION SCAN ===== */
+let nutriB64=null,nutriMime='image/jpeg';
+let foodLog=JSON.parse(localStorage.getItem('sq4_food_log')||'[]');
+let lastNutriResult=null;
+document.getElementById('fi-nutri').addEventListener('change',e=>{if(e.target.files[0])loadNutriImg(e.target.files[0]);});
+function openNutriCamera(){const fi=document.getElementById('fi-nutri');fi.setAttribute('capture','environment');fi.click();}
+function loadNutriImg(f){
+  nutriMime=f.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=ev=>{
+    nutriB64=ev.target.result.split(',')[1];
+    const img=document.getElementById('prev-nutri');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('dph-nutri').style.display='none';
+    document.getElementById('drop-zone-nutri').classList.add('has-image');
+    document.getElementById('btn-nutri').disabled=false;
+    document.getElementById('nutri-result').style.display='none';
+  };r.readAsDataURL(f);
+}
+async function runNutriScan(){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key){showErrBox('err-nutri','Add Anthropic API key in System settings.');return;}
+  document.getElementById('loading-nutri').classList.add('show');
+  document.getElementById('btn-nutri').disabled=true;
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:nutriMime,data:nutriB64}},
+      {type:'text',text:'You are a professional nutritionist AI. Analyze this food image and return PURE JSON ONLY:\n{"food_identified":true,"dish_name":"","cuisine":"","serving_estimate":"e.g. 1 plate ~350g","calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"fiber_g":0,"sugar_g":0,"sodium_mg":0,"vitamins":[""],"health_score":0,"health_label":"Excellent|Good|Moderate|Poor","ingredients_detected":[""],"allergens":[""],"diet_tags":["Vegan","Gluten-Free","etc"],"tips":["healthy tip 1","tip 2"],"disclaimer":"Estimates may vary. Consult a dietitian for medical advice."}\nhealth_score 0-100. If no food visible set food_identified:false.'}
+    ]}]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error('API Error '+resp.status);
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
+    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
+    document.getElementById('loading-nutri').classList.remove('show');
+    document.getElementById('btn-nutri').disabled=false;
+    if(!r.food_identified){showErrBox('err-nutri','No food detected. Try a clearer photo of your meal.');return;}
+    lastNutriResult=r;
+    const hc=r.health_score>=80?'var(--green)':r.health_score>=60?'#f59e0b':'var(--red)';
+    const macros=[
+      {l:'Calories',v:r.calories,u:'kcal',c:'#f59e0b'},
+      {l:'Protein',v:r.protein_g,u:'g',c:'var(--cyan)'},
+      {l:'Carbs',v:r.carbs_g,u:'g',c:'var(--gold)'},
+      {l:'Fat',v:r.fat_g,u:'g',c:'var(--violet2)'},
+    ];
+    const macroHtml=macros.map(m=>`<div class="nutri-macro"><div class="nutri-macro-val" style="color:${m.c}">${m.v}</div><div class="nutri-macro-lbl">${m.l}<br>${m.u}</div></div>`).join('');
+    const total=r.protein_g+r.carbs_g+r.fat_g||1;
+    const bars=[
+      {l:'Protein',v:r.protein_g,pct:Math.round(r.protein_g/total*100),c:'var(--cyan)'},
+      {l:'Carbs',v:r.carbs_g,pct:Math.round(r.carbs_g/total*100),c:'var(--gold)'},
+      {l:'Fat',v:r.fat_g,pct:Math.round(r.fat_g/total*100),c:'var(--violet2)'},
+      {l:'Fiber',v:r.fiber_g,pct:Math.min(100,Math.round(r.fiber_g/30*100)),c:'var(--green)'},
+    ];
+    const barsHtml=bars.map(b=>`<div class="nutri-bar-wrap"><div class="nutri-bar-label"><span>${b.l} ${b.v}g</span><span style="color:var(--text3)">${b.pct}%</span></div><div class="nutri-bar-track"><div class="nutri-bar-fill" style="--tw:${b.pct}%;background:${b.c}"></div></div></div>`).join('');
+    const tags=(r.diet_tags||[]).map(t=>`<span style="padding:3px 9px;border-radius:50px;border:1px solid var(--rim);background:var(--card2);font-size:.64rem;color:var(--text3)">${t}</span>`).join('');
+    const allergens=(r.allergens||[]).filter(Boolean);
+    const tips=(r.tips||[]).map(t=>`<div class="fact"><div class="fact-dot"></div><div>${t}</div></div>`).join('');
+    document.getElementById('nutri-card-content').innerHTML=`
+      <div class="nutri-card">
+        <div class="nutri-eye">NUTRITION INTELLIGENCE</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div><div class="nutri-name">${r.dish_name||'Unknown Food'}</div><div style="font-size:.7rem;color:var(--text3)">${r.cuisine||''} · ${r.serving_estimate||''}</div></div>
+          <div style="text-align:center;background:var(--card2);border-radius:8px;padding:6px 10px;min-width:52px"><div style="font-family:Orbitron,monospace;font-size:.95rem;font-weight:700;color:${hc}">${r.health_score}</div><div style="font-size:.56rem;color:var(--text3)">HEALTH</div></div>
+        </div>
+        <div class="nutri-macros">${macroHtml}</div>
+        ${barsHtml}
+        ${tags?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">${tags}</div>`:''}
+        ${allergens.length?`<div style="margin-top:8px;padding:7px 10px;border-radius:8px;background:rgba(255,68,102,.07);border:1px solid rgba(255,68,102,.15);font-size:.72rem;color:#ff8899">⚠️ Allergens: ${allergens.join(', ')}</div>`:''}
+        <button class="nutri-log-btn" onclick="logFood()">+ Add to Today's Food Log</button>
+      </div>
+      ${tips?`<div class="facts-head" style="color:var(--green)">NUTRITION TIPS</div>${tips}`:''}
+      <div style="font-size:.64rem;color:var(--text3);margin-top:10px;font-family:JetBrains Mono,monospace">// ${r.disclaimer||'Estimates only'}</div>`;
+    document.getElementById('nutri-result').style.display='block';
+    renderFoodLog();
+    renderScanChat(r,'nutri');
+  }catch(err){
+    document.getElementById('loading-nutri').classList.remove('show');
+    document.getElementById('btn-nutri').disabled=false;
+    showErrBox('err-nutri',err.message);
+  }
+}
+function logFood(){
+  if(!lastNutriResult)return;
+  const today=new Date().toDateString();
+  foodLog=foodLog.filter(x=>x.date===today);
+  foodLog.push({date:today,name:lastNutriResult.dish_name||'Food',cal:lastNutriResult.calories||0,ts:Date.now()});
+  localStorage.setItem('sq4_food_log',JSON.stringify(foodLog));
+  renderFoodLog();
+  const btn=document.querySelector('.nutri-log-btn');if(btn)btn.textContent='✅ Added!';
+}
+function renderFoodLog(){
+  const today=new Date().toDateString();
+  const todayItems=foodLog.filter(x=>x.date===today);
+  const sec=document.getElementById('food-log-section');
+  if(!todayItems.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  document.getElementById('food-log-date').textContent=today;
+  const total=todayItems.reduce((a,b)=>a+b.cal,0);
+  document.getElementById('food-log-list').innerHTML=todayItems.map(i=>`<div class="food-log-item"><span>${i.name}</span><span class="food-log-cal">${i.cal} kcal</span></div>`).join('');
+  document.getElementById('food-log-total').textContent=total+' kcal';
+}
+
+/* ===== OCR + DOCUMENT SCANNER ===== */
+let ocrB64=null,ocrMime='image/jpeg',ocrExtractedText='',ocrSummary='',ocrTodos=[];
+document.getElementById('fi-ocr').addEventListener('change',e=>{if(e.target.files[0])loadOCRImg(e.target.files[0]);});
+function openOCRCamera(){const fi=document.getElementById('fi-ocr');fi.setAttribute('capture','environment');fi.click();}
+function loadOCRImg(f){
+  ocrMime=f.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=ev=>{
+    ocrB64=ev.target.result.split(',')[1];
+    const img=document.getElementById('prev-ocr');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('dph-ocr').style.display='none';
+    document.getElementById('drop-zone-ocr').classList.add('has-image');
+    document.getElementById('btn-ocr').disabled=false;
+    document.getElementById('ocr-result').classList.remove('show');
+  };r.readAsDataURL(f);
+}
+async function runOCR(){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key){showErrBox('err-ocr','Add Anthropic API key in System settings.');return;}
+  document.getElementById('loading-ocr').classList.add('show');
+  document.getElementById('btn-ocr').disabled=true;
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:3000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:ocrMime,data:ocrB64}},
+      {type:'text',text:'You are an expert OCR and document analysis AI. Extract ALL text from this image and return PURE JSON ONLY:\n{"extracted_text":"full text verbatim preserving line breaks","summary":"2-4 sentence summary of the document","key_points":["point 1","point 2","point 3"],"todos":["actionable item 1","item 2"],"doc_type":"Invoice|Letter|Note|Article|Form|Receipt|Book|Other","language_detected":"English|Arabic|etc","word_count":0}\nIf no text found set extracted_text to empty string.'}
+    ]}]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error('API Error '+resp.status);
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
+    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
+    document.getElementById('loading-ocr').classList.remove('show');
+    document.getElementById('btn-ocr').disabled=false;
+    if(!r.extracted_text){showErrBox('err-ocr','No text detected. Try a clearer image.');return;}
+    ocrExtractedText=r.extracted_text;
+    ocrSummary=r.summary||'';
+    ocrTodos=r.todos||[];
+    document.getElementById('ocr-text-content').textContent=r.extracted_text;
+    document.getElementById('ocr-summary-content').innerHTML=`<div style="font-size:.7rem;color:var(--text3);font-family:JetBrains Mono,monospace;margin-bottom:8px">${r.doc_type||'Document'} · ${r.language_detected||'Unknown'} · ${r.word_count||0} words</div><p>${r.summary||''}</p>${(r.key_points||[]).map(p=>`<div class="fact" style="margin-top:5px"><div class="fact-dot"></div><div>${p}</div></div>`).join('')}`;
+    document.getElementById('ocr-todos-content').innerHTML=ocrTodos.length?ocrTodos.map((t,i)=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--rim2)"><input type="checkbox" id="todo-${i}" style="margin-top:4px;accent-color:var(--cyan)"><label for="todo-${i}" style="font-size:.82rem;color:var(--text2);cursor:pointer">${t}</label></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:10px 0">No action items detected</div>';
+    document.getElementById('ocr-result').classList.add('show');
+    buildOCRChat(r);
+  }catch(err){
+    document.getElementById('loading-ocr').classList.remove('show');
+    document.getElementById('btn-ocr').disabled=false;
+    showErrBox('err-ocr',err.message);
+  }
+}
+function switchOcrTab(name,el){
+  document.querySelectorAll('.ocr-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ocr-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ocr-panel-'+name).classList.add('active');
+}
+function copyOCR(){navigator.clipboard.writeText(ocrExtractedText).then(()=>{const b=document.querySelector('.ocr-act');if(b)b.textContent='✅ Copied!';setTimeout(()=>{if(b)b.textContent='📋 Copy All';},2000);});}
+function shareOCR(){if(navigator.share)navigator.share({text:ocrExtractedText});else navigator.clipboard.writeText(ocrExtractedText);}
+async function runTranslate(){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key){alert('Add API key in System settings.');return;}
+  if(!ocrExtractedText){alert('Extract text first.');return;}
+  const lang=document.getElementById('translate-lang').value;
+  const wrap=document.getElementById('ocr-translate-content');
+  const loading=document.getElementById('loading-translate');
+  wrap.textContent='';loading.classList.add('show');
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:`Translate the following text to ${lang}. Return ONLY the translated text, no explanations:\n\n${ocrExtractedText}`}]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error('API Error '+resp.status);
+    const data=await resp.json();
+    let translated='';for(const b of(data.content||[]))if(b.type==='text')translated+=b.text;
+    loading.classList.remove('show');
+    wrap.innerHTML=`<div class="ocr-text-area">${translated}</div><div class="ocr-action-row"><button class="ocr-act" onclick="navigator.clipboard.writeText(this.closest('.ocr-panel').querySelector('.ocr-text-area').textContent).then(()=>this.textContent='✅ Copied!')">📋 Copy</button></div>`;
+  }catch(err){loading.classList.remove('show');wrap.textContent='Error: '+err.message;}
+}
+function buildOCRChat(ocrData){
+  const wrap=document.getElementById('ocr-chat-wrap');
+  wrap.innerHTML=`<div class="chat-wrap show">
+    <div class="chat-head">ASK ABOUT THIS DOCUMENT</div>
+    <div class="chat-suggestions" id="ocr-chat-sugs">
+      <div class="chat-sug" onclick="sendOCRChat('Summarize this in bullet points')">📋 Bullet summary</div>
+      <div class="chat-sug" onclick="sendOCRChat('What are the key dates mentioned?')">📅 Key dates</div>
+      <div class="chat-sug" onclick="sendOCRChat('Who are the people mentioned?')">👤 People</div>
+      <div class="chat-sug" onclick="sendOCRChat('What action is required from me?')">✅ Actions needed</div>
+    </div>
+    <div class="chat-messages" id="ocr-chat-messages"></div>
+    <div class="chat-input-row">
+      <input class="chat-inp" id="ocr-chat-inp" placeholder="Ask about this document..." onkeydown="if(event.key==='Enter')sendOCRChat()">
+      <button class="chat-send" id="ocr-chat-send" onclick="sendOCRChat()">Send</button>
+    </div>
+  </div>`;
+  window._ocrChatContext=[{role:'user',content:`Here is extracted text from a document:\n\n${ocrExtractedText}\n\nAnswer questions about it.`},{role:'assistant',content:`I've analyzed the document. It's a ${ocrData.doc_type||'document'} in ${ocrData.language_detected||'English'}. Ask me anything about it!`}];
+}
+let _ocrChatHistory=[];
+async function sendOCRChat(preset){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key)return;
+  const inp=document.getElementById('ocr-chat-inp');
+  const msg=preset||(inp?inp.value.trim():'');
+  if(!msg)return;
+  if(inp)inp.value='';
+  const msgs=document.getElementById('ocr-chat-messages');
+  if(!msgs)return;
+  msgs.innerHTML+=`<div class="chat-msg user">${msg}</div>`;
+  msgs.innerHTML+=`<div class="chat-msg ai typing" id="ocr-typing">Thinking...</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  const send=document.getElementById('ocr-chat-send');if(send)send.disabled=true;
+  _ocrChatHistory.push({role:'user',content:msg});
+  try{
+    const context=window._ocrChatContext||[];
+    const body={model:'claude-sonnet-4-6',max_tokens:1000,messages:[...context,..._ocrChatHistory]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    let reply='';for(const b of(data.content||[]))if(b.type==='text')reply+=b.text;
+    _ocrChatHistory.push({role:'assistant',content:reply});
+    const typing=document.getElementById('ocr-typing');
+    if(typing){typing.classList.remove('typing');typing.id='';typing.innerHTML=reply;}
+    if(send)send.disabled=false;msgs.scrollTop=msgs.scrollHeight;
+  }catch(err){
+    const typing=document.getElementById('ocr-typing');
+    if(typing){typing.classList.remove('typing');typing.id='';typing.textContent='Error: '+err.message;}
+    if(send)send.disabled=false;
+  }
+}
+
+/* ===== FOLLOW-UP CHAT (Main Scanner) ===== */
+let scanChatHistory=[],scanChatContext='';
+function renderScanChat(result,mode){
+  const wrap=document.getElementById('scan-chat-wrap');
+  if(!wrap)return;
+  scanChatHistory=[];
+  scanChatContext=`You are SCANIQ, an expert AI assistant. The user just scanned: "${result.dish_name||result.name||'an item'}". Here is the full analysis: ${JSON.stringify(result)}. Answer follow-up questions concisely and helpfully.`;
+  const suggestions={
+    nutri:['🍳 How do I cook this?','💪 Is this healthy for weight loss?','🔄 What are similar alternatives?','🥗 Suggest a balanced meal'],
+    default:['💰 What is a fair price?','🛒 Where can I buy this?','📊 How rare is this?','🔍 Tell me more about this'],
+  };
+  const sugs=suggestions[mode]||suggestions.default;
+  document.getElementById('scan-chat-suggestions').innerHTML=sugs.map(s=>`<div class="chat-sug" onclick="sendScanChat('${s}')">${s}</div>`).join('');
+  document.getElementById('scan-chat-messages').innerHTML='';
+  wrap.classList.add('show');
+}
+async function sendScanChat(preset){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key)return;
+  const inp=document.getElementById('scan-chat-inp');
+  const msg=preset||(inp?inp.value.trim():'');
+  if(!msg)return;
+  if(inp&&!preset)inp.value='';
+  const msgs=document.getElementById('scan-chat-messages');
+  if(!msgs)return;
+  msgs.innerHTML+=`<div class="chat-msg user">${msg}</div>`;
+  msgs.innerHTML+=`<div class="chat-msg ai typing" id="scan-typing">Thinking...</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  const send=document.getElementById('scan-chat-send');if(send)send.disabled=true;
+  scanChatHistory.push({role:'user',content:msg});
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:800,messages:[{role:'user',content:scanChatContext},{role:'assistant',content:'Understood! I have the full analysis ready. Ask me anything.'},...scanChatHistory]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    let reply='';for(const b of(data.content||[]))if(b.type==='text')reply+=b.text;
+    scanChatHistory.push({role:'assistant',content:reply});
+    const typing=document.getElementById('scan-typing');
+    if(typing){typing.classList.remove('typing');typing.id='';typing.innerHTML=reply;}
+    if(send)send.disabled=false;msgs.scrollTop=msgs.scrollHeight;
+  }catch(err){
+    const typing=document.getElementById('scan-typing');
+    if(typing){typing.classList.remove('typing');typing.id='';typing.textContent='Error: '+err.message;}
+    if(send)send.disabled=false;
+  }
+}
+
+/* ===== FACE AI ===== */
+let faceB64=null,faceMime='image/jpeg';
+document.getElementById('fi-face').addEventListener('change',e=>{if(e.target.files[0])loadFaceImg(e.target.files[0]);});
+function openFaceCamera(){const fi=document.getElementById('fi-face');fi.setAttribute('capture','environment');fi.click();}
+function loadFaceImg(f){
+  faceMime=f.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=ev=>{
+    faceB64=ev.target.result.split(',')[1];
+    const img=document.getElementById('prev-face');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('dph-face').style.display='none';
+    document.getElementById('drop-zone-face').classList.add('has-image');
+    document.getElementById('btn-face').disabled=false;
+    document.getElementById('face-result').style.display='none';
+  };r.readAsDataURL(f);
+}
+async function runFaceScan(){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key){showErrBox('err-face','Add Anthropic API key in System settings.');return;}
+  document.getElementById('loading-face').classList.add('show');
+  document.getElementById('btn-face').disabled=true;
+  document.getElementById('drop-zone-face').classList.add('scanning');
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:faceMime,data:faceB64}},
+      {type:'text',text:'You are an expert facial aesthetics AI. Analyze this face image and return PURE JSON ONLY — no markdown:\n{"face_found":true,"gender_presentation":"Male|Female|Androgynous","estimated_age_range":"20-25","symmetry_score":0,"attractiveness_score":0,"facial_features":{"face_shape":"","eye_description":"","nose_type":"","lip_type":"","skin_quality":"","jawline":""},"aesthetic_metrics":[{"label":"Facial Symmetry","score":0,"note":""},{"label":"Golden Ratio Alignment","score":0,"note":""},{"label":"Skin Quality","score":0,"note":""},{"label":"Feature Harmony","score":0,"note":""},{"label":"Expression Energy","score":0,"note":""}],"strengths":["","",""],"overall_verdict":"short descriptive phrase","disclaimer":"For entertainment purposes only. Not a medical assessment."}\nAll scores 0-100. If no face found set face_found:false.'}
+    ]}]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error('API Error '+resp.status);
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
+    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
+    document.getElementById('loading-face').classList.remove('show');
+    document.getElementById('drop-zone-face').classList.remove('scanning');
+    document.getElementById('btn-face').disabled=false;
+    if(!r.face_found){showErrBox('err-face','No face detected. Try a clearer portrait photo.');return;}
+    const metrics=(r.aesthetic_metrics||[]).map(m=>{const pct=Math.min(100,Math.max(0,m.score));return`<div class="face-metric"><div class="face-metric-label">${m.label}</div><div class="face-metric-val">${pct}/100</div><div class="face-score-bar"><div class="face-score-fill" style="width:${pct}%"></div></div><div style="font-size:.66rem;color:var(--text3);margin-top:3px">${m.note||''}</div></div>`;}).join('');
+    const strengths=(r.strengths||[]).map(s=>`<div class="fact"><div class="fact-dot"></div><div>${s}</div></div>`).join('');
+    document.getElementById('face-result').innerHTML=`<div class="face-card"><div class="face-eye">FACE INTELLIGENCE</div><div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><div style="background:var(--card2);border-radius:50%;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0">🧬</div><div><div style="font-family:Orbitron,monospace;font-size:1rem;font-weight:700;color:var(--violet2)">${r.overall_verdict||''}</div><div style="font-size:.72rem;color:var(--text3);margin-top:3px">${r.gender_presentation||''} · Est. age ${r.estimated_age_range||'?'}</div><div style="font-size:.72rem;color:var(--cyan);margin-top:2px">Symmetry ${r.symmetry_score||0}/100 · Aesthetic ${r.attractiveness_score||0}/100</div></div></div><div class="face-metrics">${metrics}</div></div>${strengths?'<div class="facts-head">KEY FEATURES</div>'+strengths:''}<div style="font-size:.64rem;color:var(--text3);margin-top:10px;font-family:JetBrains Mono,monospace">// ${r.disclaimer||'For entertainment only'}</div>`;
+    document.getElementById('face-result').style.display='block';
+  }catch(err){
+    document.getElementById('loading-face').classList.remove('show');
+    document.getElementById('drop-zone-face').classList.remove('scanning');
+    document.getElementById('btn-face').disabled=false;
+    showErrBox('err-face',err.message);
+  }
+}
+
+/* ===== FACE MATCH ===== */
+let fm1B64=null,fm2B64=null,fm1Mime='image/jpeg',fm2Mime='image/jpeg';
+['1','2'].forEach(n=>{
+  document.getElementById('fi-fm'+n).addEventListener('change',e=>{if(e.target.files[0])loadFmImg(n,e.target.files[0]);});
+});
+function loadFmImg(n,f){
+  const r=new FileReader();
+  r.onload=ev=>{
+    const b64=ev.target.result.split(',')[1];
+    const img=document.getElementById('fm-img'+n);
+    const slot=document.getElementById('fm-slot-'+n);
+    img.src=ev.target.result;img.style.display='block';
+    const ico=slot.querySelector('.fm-slot-ico');const lbl=slot.querySelector('.fm-slot-label');
+    if(ico)ico.style.display='none';if(lbl)lbl.style.display='none';
+    slot.classList.add('loaded');
+    if(n==='1'){fm1B64=b64;fm1Mime=f.type||'image/jpeg';}else{fm2B64=b64;fm2Mime=f.type||'image/jpeg';}
+    document.getElementById('btn-fm').disabled=!(fm1B64&&fm2B64);
+  };r.readAsDataURL(f);
+}
+async function runFaceMatch(){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key){showErrBox('err-fm','Add Anthropic API key in System settings.');return;}
+  document.getElementById('loading-fm').classList.add('show');
+  document.getElementById('btn-fm').disabled=true;
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:fm1Mime,data:fm1B64}},
+      {type:'image',source:{type:'base64',media_type:fm2Mime,data:fm2B64}},
+      {type:'text',text:'You are a facial comparison AI. Analyze BOTH faces and return PURE JSON ONLY:\n{"similarity_score":0,"relationship_prediction":"Siblings|Parent-Child|Twins|Unrelated|Cousins","confidence":"High|Medium|Low","shared_features":["","",""],"differences":["","",""],"person_a":{"dominant_feature":"","face_shape":""},"person_b":{"dominant_feature":"","face_shape":""},"verdict":"short description","disclaimer":"For entertainment only. Not DNA or identity verification."}\nsimilarity_score 0-100.'}
+    ]}]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error('API Error '+resp.status);
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
+    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
+    document.getElementById('loading-fm').classList.remove('show');
+    document.getElementById('btn-fm').disabled=false;
+    const sim=Math.min(100,Math.max(0,r.similarity_score||0));
+    const simColor=sim>=70?'var(--cyan)':sim>=40?'#f59e0b':'var(--text2)';
+    const shared=(r.shared_features||[]).map(s=>`<div class="fact"><div class="fact-dot"></div><div>${s}</div></div>`).join('');
+    const diffs=(r.differences||[]).map(s=>`<div class="fact"><div style="width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:8px"></div><div>${s}</div></div>`).join('');
+    document.getElementById('fm-result').innerHTML=`<div class="face-card"><div class="face-eye">FACE MATCH RESULT</div><div style="text-align:center;margin-bottom:14px"><div style="font-family:Orbitron,monospace;font-size:2rem;font-weight:900;color:${simColor}">${sim}%</div><div style="font-size:.72rem;color:var(--text3);font-family:JetBrains Mono,monospace">SIMILARITY SCORE</div><div style="font-size:.9rem;font-weight:600;color:var(--text);margin-top:5px">${r.relationship_prediction||''}</div><div style="font-size:.7rem;color:var(--text3);margin-top:2px">Confidence: ${r.confidence||'Medium'}</div></div><div style="font-size:.82rem;color:var(--text2);line-height:1.6;margin-bottom:10px">${r.verdict||''}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><div class="face-metric"><div class="face-metric-label">PERSON A</div><div style="font-size:.78rem;color:var(--text)">${r.person_a?.dominant_feature||'—'}</div><div style="font-size:.66rem;color:var(--text3)">${r.person_a?.face_shape||''}</div></div><div class="face-metric"><div class="face-metric-label">PERSON B</div><div style="font-size:.78rem;color:var(--text)">${r.person_b?.dominant_feature||'—'}</div><div style="font-size:.66rem;color:var(--text3)">${r.person_b?.face_shape||''}</div></div></div></div>${shared?'<div class="facts-head">SHARED FEATURES</div>'+shared:''}${diffs?'<div class="facts-head" style="color:var(--red);margin-top:8px">DIFFERENCES</div>'+diffs:''}<div style="font-size:.64rem;color:var(--text3);margin-top:10px;font-family:JetBrains Mono,monospace">// ${r.disclaimer||'Entertainment only'}</div>`;
+    document.getElementById('fm-result').style.display='block';
+  }catch(err){
+    document.getElementById('loading-fm').classList.remove('show');
+    document.getElementById('btn-fm').disabled=false;
+    showErrBox('err-fm',err.message);
+  }
+}
+
+/* ===== AUTHENTICITY ===== */
+let authB64=null,authMime='image/jpeg';
+document.getElementById('fi-auth').addEventListener('change',e=>{if(e.target.files[0])loadAuthImg(e.target.files[0]);});
+function openAuthCamera(){const fi=document.getElementById('fi-auth');fi.setAttribute('capture','environment');fi.click();}
+function loadAuthImg(f){
+  authMime=f.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=ev=>{
+    authB64=ev.target.result.split(',')[1];
+    const img=document.getElementById('prev-auth');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('dph-auth').style.display='none';
+    document.getElementById('drop-zone-auth').classList.add('has-image');
+    document.getElementById('btn-auth').disabled=false;
+    document.getElementById('auth-result').style.display='none';
+  };r.readAsDataURL(f);
+}
+async function runAuthScan(){
+  const key=localStorage.getItem('sq4_key')||document.getElementById('api-key').value.trim();
+  if(!key){showErrBox('err-auth','Add Anthropic API key in System settings.');return;}
+  document.getElementById('loading-auth').classList.add('show');
+  document.getElementById('btn-auth').disabled=true;
+  document.getElementById('drop-zone-auth').classList.add('scanning');
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:authMime,data:authB64}},
+      {type:'text',text:'You are an expert authenticity and counterfeit detection AI. Return PURE JSON ONLY:\n{"item_identified":"","authenticity_verdict":"GENUINE|FAKE|UNCERTAIN","confidence_score":0,"authenticity_markers":{"positive":[""],"suspicious":[""]},"red_flags":[""],"recommendation":"Buy safely|Avoid|Get physical inspection","detail_assessment":"2-3 sentences","disclaimer":"Visual analysis only. Physical inspection recommended for high-value items."}\nconfidence_score 0-100. Check: logos, stitching, fonts, materials, holograms, serial numbers, quality.'}
+    ]}]};
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error('API Error '+resp.status);
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
+    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
+    document.getElementById('loading-auth').classList.remove('show');
+    document.getElementById('drop-zone-auth').classList.remove('scanning');
+    document.getElementById('btn-auth').disabled=false;
+    const vc=r.authenticity_verdict==='GENUINE'?'genuine':r.authenticity_verdict==='FAKE'?'fake':'uncertain';
+    const vcIcon=vc==='genuine'?'✅':vc==='fake'?'❌':'⚠️';
+    const vcColor=vc==='genuine'?'var(--green)':vc==='fake'?'var(--red)':'#f59e0b';
+    const pos=(r.authenticity_markers?.positive||[]).filter(Boolean).map(s=>`<div class="fact"><div style="width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:8px"></div><div>${s}</div></div>`).join('');
+    const sus=(r.authenticity_markers?.suspicious||[]).filter(Boolean).map(s=>`<div class="fact"><div style="width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:8px"></div><div>${s}</div></div>`).join('');
+    const flags=(r.red_flags||[]).filter(Boolean).map(s=>`<div class="fact"><div class="fact-dot"></div><div>${s}</div></div>`).join('');
+    document.getElementById('auth-result').innerHTML=`<div class="auth-card"><div class="auth-eye">AUTHENTICITY ANALYSIS</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:2rem">${vcIcon}</span><div><div class="auth-verdict ${vc}">${r.authenticity_verdict||'UNCERTAIN'}</div><div style="font-size:.7rem;color:var(--text3)">Confidence: ${r.confidence_score||0}/100 · ${r.item_identified||'Item'}</div></div></div><div class="auth-detail">${r.detail_assessment||''}</div><div style="margin-top:10px;background:var(--card2);border-radius:8px;padding:8px 12px;font-size:.78rem"><span style="color:var(--text3);font-family:JetBrains Mono,monospace;font-size:.6rem">RECOMMENDATION // </span><span style="color:${vcColor};font-weight:600">${r.recommendation||''}</span></div></div>${pos?'<div class="facts-head" style="color:var(--green)">AUTHENTIC MARKERS</div>'+pos:''}${sus?'<div class="facts-head" style="color:var(--red);margin-top:8px">SUSPICIOUS ELEMENTS</div>'+sus:''}${flags?'<div class="facts-head" style="color:var(--red);margin-top:8px">RED FLAGS</div>'+flags:''}<div style="font-size:.64rem;color:var(--text3);margin-top:10px;font-family:JetBrains Mono,monospace">// ${r.disclaimer||'Visual analysis only'}</div>`;
+    document.getElementById('auth-result').style.display='block';
+  }catch(err){
+    document.getElementById('loading-auth').classList.remove('show');
+    document.getElementById('drop-zone-auth').classList.remove('scanning');
+    document.getElementById('btn-auth').disabled=false;
+    showErrBox('err-auth',err.message);
+  }
+}
+
+/* ===== QR / BARCODE ===== */
+let qrImgFile=null;
+document.getElementById('fi-qr').addEventListener('change',e=>{if(e.target.files[0])loadQRImg(e.target.files[0]);});
+function openQRCamera(){const fi=document.getElementById('fi-qr');fi.setAttribute('capture','environment');fi.click();}
+function loadQRImg(f){
+  qrImgFile=f;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=document.getElementById('prev-qr');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('dph-qr').style.display='none';
+    document.getElementById('drop-zone-qr').classList.add('has-image');
+    document.getElementById('btn-qr').disabled=false;
+    document.getElementById('qr-result').classList.remove('show');
+  };r.readAsDataURL(f);
+}
+async function decodeQR(){
+  if(!qrImgFile){showErrBox('err-qr','No image loaded.');return;}
+  document.getElementById('btn-qr').disabled=true;
+  document.getElementById('qr-result').classList.remove('show');
+  showErrBox('err-qr','');
+  try{
+    const img=new Image();img.src=URL.createObjectURL(qrImgFile);
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;});
+    const canvas=document.getElementById('qr-canvas');
+    canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+    document.getElementById('qr-canvas').getContext('2d').drawImage(img,0,0);
+    let decoded=null,type='QR CODE';
+    if('BarcodeDetector' in window){
+      try{
+        const bd=new BarcodeDetector({formats:['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e','data_matrix','pdf417','aztec','itf']});
+        const results=await bd.detect(img);
+        if(results.length>0){decoded=results[0].rawValue;type=results[0].format.toUpperCase().replace(/_/g,' ');}
+      }catch(e){}
+    }
+    document.getElementById('btn-qr').disabled=false;
+    if(!decoded){showErrBox('err-qr','Could not decode. Ensure good lighting and focus on the code. BarcodeDetector may not be available on all browsers.');return;}
+    document.getElementById('qr-type').textContent=type;
+    document.getElementById('qr-val').textContent=decoded;
+    const isURL=/^https?:\/\//i.test(decoded)||/^www\./i.test(decoded);
+    const isEmail=/^mailto:|^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(decoded);
+    const isPhone=/^tel:|^\+[\d\s\-\(\)]{7,}$/.test(decoded);
+    const safe=decoded.replace(/'/g,"\\'");
+    let acts=`<button class="qr-act-btn" onclick="navigator.clipboard.writeText('${safe}').then(()=>this.textContent='✅ Copied!')">📋 Copy</button>`;
+    if(isURL)acts+=`<button class="qr-act-btn" onclick="window.open('${decoded.startsWith('http')?decoded:'https://'+decoded}','_blank')">🌐 Open</button>`;
+    if(isEmail)acts+=`<button class="qr-act-btn" onclick="window.open('mailto:${decoded.replace('mailto:','')}')">✉️ Email</button>`;
+    if(isPhone)acts+=`<button class="qr-act-btn" onclick="window.open('tel:${decoded.replace('tel:','')}')">📞 Call</button>`;
+    document.getElementById('qr-actions').innerHTML=acts;
+    document.getElementById('qr-result').classList.add('show');
+  }catch(err){
+    document.getElementById('btn-qr').disabled=false;
+    showErrBox('err-qr','Error: '+err.message);
+  }
+}
+
+/* ===== COLLECTIONS ===== */
+let collections=JSON.parse(localStorage.getItem('sq4_coll')||'[]');
+function saveColl(){localStorage.setItem('sq4_coll',JSON.stringify(collections));}
+function renderCollections(){
+  const g=document.getElementById('coll-grid');if(!g)return;g.innerHTML='';
+  collections.forEach((c,i)=>{
+    const thumbs=c.items.slice(0,4);
+    const thumbHtml=Array.from({length:4},(_,ti)=>{const item=thumbs[ti];return item?`<img src="${item.thumb}" onerror="this.style.display='none'" alt="">`:`<div class="coll-ph">${c.icon||'📁'}</div>`;}).join('');
+    const d=document.createElement('div');d.className='coll-card';
+    d.innerHTML=`<div class="coll-thumb-row">${thumbHtml}</div><div class="coll-info"><div class="coll-name">${c.name}</div><div class="coll-count">${c.items.length} items</div></div>`;
+    d.onclick=()=>openCollection(i);g.appendChild(d);
+  });
+  const add=document.createElement('div');add.className='coll-card coll-add-btn';
+  add.innerHTML='<span class="coll-add-ico">➕</span><span>New Collection</span>';
+  add.onclick=createCollection;g.appendChild(add);
+}
+function createCollection(){
+  const name=prompt('Collection name:');if(!name||!name.trim())return;
+  const icons=['📁','⭐','🔬','💎','🎨','🌿','🚗','🏆','📚','🧬'];
+  collections.push({name:name.trim(),icon:icons[Math.floor(Math.random()*icons.length)],items:[],created:Date.now()});
+  saveColl();renderCollections();
+}
+function openCollection(i){
+  const c=collections[i];
+  if(!hist.length){alert('No scans in history yet. Scan items first!');return;}
+  const options=hist.map((h,hi)=>`${hi+1}. ${h.result?.name||'Scan'} — ${timeAgo(h.ts)}`).join('\n');
+  const choice=prompt(`Add scan to "${c.name}":\n\n${options}\n\nEnter number:`);
+  const n=parseInt(choice);if(isNaN(n)||n<1||n>hist.length)return;
+  const item=hist[n-1];
+  if(c.items.find(x=>x.id===item.id)){alert('Already in this collection.');return;}
+  c.items.unshift({id:item.id,thumb:item.thumb,name:item.result?.name||'Scan',ts:item.ts});
+  saveColl();renderCollections();alert(`Added to "${c.name}" ✅`);
+}
+
+/* ===== HELPER ===== */
+function showErrBox(id,msg){const b=document.getElementById(id);if(!b)return;if(!msg){b.classList.remove('show');b.textContent='';return;}b.textContent='ERROR // '+msg;b.classList.add('show');}
+
+/* patch sp for collections */
+const _sp0=sp;function sp(n,el){_sp0(n,el);if(n==='coll')renderCollections();}
+</script>
+</body>
+</html>
