@@ -3,6 +3,46 @@
 // This function translates that to Gemini's format and back, so the
 // rest of the app never needs to know which AI provider is behind it.
 
+// Repairs the most common way Gemini breaks JSON: it embeds a literal
+// double-quote inside a string value (e.g. quoting text off a label)
+// without escaping it. This walks the text tracking whether we're inside
+// a string, and treats a '"' as "real" closing punctuation only when it's
+// followed by a JSON structural character (: , } ]) or end of text —
+// otherwise it's an internal quote, so it gets escaped instead.
+function repairJsonQuotes(raw) {
+  let out = '';
+  let inStr = false;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inStr) {
+      if (ch === '\\') { out += ch + (raw[i + 1] || ''); i++; continue; }
+      if (ch === '"') {
+        let j = i + 1;
+        while (j < raw.length && /\s/.test(raw[j])) j++;
+        const nextCh = raw[j];
+        if (nextCh === undefined || ':,}]'.includes(nextCh)) {
+          inStr = false;
+          out += ch;
+        } else {
+          out += '\\"';
+        }
+        continue;
+      }
+      out += ch;
+    } else {
+      if (ch === '"') inStr = true;
+      out += ch;
+    }
+  }
+  // Trailing commas before a closing brace/bracket are also a common slip.
+  return out.replace(/,(\s*[}\]])/g, '$1');
+}
+
+function extractJsonBlock(s) {
+  const match = s.match(/\{[\s\S]*\}/);
+  return match ? match[0] : s;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -63,9 +103,9 @@ module.exports = async (req, res) => {
     }
 
     // Gemini's native structured-output mode guarantees syntactically valid
-    // JSON, eliminating the "Expected ',' or '}'" parse errors that happen
-    // when the model free-types JSON and forgets to escape a quote.
-    // Not compatible with tools/grounding, so only apply when no tools are used.
+    // JSON. Not compatible with tools/grounding on gemini-2.5 models, so
+    // only apply when no tools are used (the tools+JSON case is covered by
+    // the repair pass below instead).
     if (wantsJson && !hasTools) {
       geminiBody.generationConfig.responseMimeType = 'application/json';
     }
@@ -86,11 +126,31 @@ module.exports = async (req, res) => {
     }
 
     const candidate = data.candidates?.[0];
-    const text = (candidate?.content?.parts || []).map(p => p.text || '').join('');
+    let text = (candidate?.content?.parts || []).map(p => p.text || '').join('');
 
     if (!text) {
       const reason = candidate?.finishReason || data.promptFeedback?.blockReason || 'no content returned';
       return res.status(502).json({ error: { message: `Gemini returned no usable content (${reason}). Try again.` } });
+    }
+
+    // Safety net: if the model was supposed to return JSON but the result
+    // doesn't actually parse (e.g. an unescaped quote slipped through, or
+    // this was a tools+JSON request that couldn't use native JSON mode),
+    // repair it before handing it back to the client.
+    if (wantsJson) {
+      const block = extractJsonBlock(text);
+      try {
+        JSON.parse(block);
+      } catch {
+        const repaired = repairJsonQuotes(block);
+        try {
+          JSON.parse(repaired);
+          text = text.replace(block, repaired);
+        } catch {
+          // Repair didn't work either; pass the original through and let
+          // the client's own error handling surface it.
+        }
+      }
     }
 
     // Respond in the same shape the client already expects from Anthropic
