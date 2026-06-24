@@ -487,7 +487,7 @@ function renderScanChat(result,mode){
   const wrap=document.getElementById('scan-chat-wrap');
   if(!wrap)return;
   scanChatHistory=[];
-  scanChatContext=`You are SCANIQ, an expert AI assistant. The user just scanned: "${result.dish_name||result.name||'an item'}". Here is the full analysis: ${JSON.stringify(result)}. Answer follow-up questions concisely and helpfully.`;
+  scanChatContext=`You are SCANIQ, the world's most advanced product intelligence AI. The user just scanned: "${result.dish_name||result.name||'an item'}". Full scan data: ${JSON.stringify(result)}. When answering follow-up questions, provide DEEP, DETAILED, EXPERT-LEVEL answers. Include specific facts, prices, history, where to buy, rarity, tips, comparisons, warnings, and any other relevant intelligence. Never give short vague answers — always be thorough and informative.`;
   const suggestions={
     nutri:['🍳 How do I cook this?','💪 Is this healthy for weight loss?','🔄 What are similar alternatives?','🥗 Suggest a balanced meal'],
     default:['💰 What is a fair price?','🛒 Where can I buy this?','📊 How rare is this?','🔍 Tell me more about this'],
@@ -510,7 +510,7 @@ async function sendScanChat(preset){
   const send=document.getElementById('scan-chat-send');if(send)send.disabled=true;
   scanChatHistory.push({role:'user',content:msg});
   try{
-    const body={model:'claude-sonnet-4-6',max_tokens:800,messages:[{role:'user',content:scanChatContext},{role:'assistant',content:'Understood! I have the full analysis ready. Ask me anything.'},...scanChatHistory]};
+    const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:scanChatContext},{role:'assistant',content:'Understood. I have the full scan analysis ready and will provide deep, detailed expert-level answers to all questions.'},...scanChatHistory]};
     const resp=await fetch(API_PROXY,{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await resp.json();
