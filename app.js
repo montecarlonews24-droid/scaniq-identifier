@@ -81,7 +81,7 @@ const cs=document.getElementById('cat-scroll');
 function mkChip(key,e,n){
   const d=document.createElement('div');
   d.className='chip'+(key==='auto'?' active':'');d.dataset.cat=key;
-  d.textContent=e+' '+n;
+  d.innerHTML=e+' '+n;
   d.onclick=()=>{document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));d.classList.add('active');selCat=key;};
   cs.appendChild(d);
 }
@@ -114,8 +114,9 @@ function buildPrompt(cat){
 }
 
 async function runScan(){
-  if(!imgB64)return;
+  if(!imgB64){showErr('No image loaded. Please select an image first.');return;}
   const deep=document.getElementById('t-deep').classList.contains('on');
+  const scanB64=imgB64, scanMime=imgMime; /* snapshot at button-press time */
   document.getElementById('loading').classList.add('show');
   document.getElementById('results-wrap').style.display='none';
   document.getElementById('err-box').classList.remove('show');
@@ -128,7 +129,7 @@ async function runScan(){
   const needsLive=arc.live&&document.getElementById('t-live').classList.contains('on');
   try{
     const body={model:'claude-sonnet-4-6',max_tokens:deep?4000:2000,messages:[{role:'user',content:[
-      {type:'image',source:{type:'base64',media_type:imgMime,data:imgB64}},
+      {type:'image',source:{type:'base64',media_type:scanMime,data:scanB64}},
       {type:'text',text:buildPrompt(selCat)}
     ]}]};
     if(needsLive)body.tools=[{type:'web_search_20250305',name:'web_search'}];
@@ -157,6 +158,9 @@ async function runScan(){
     }
     renderRecentHist();
     document.getElementById('btn-scan').disabled=false;
+    /* Reset file inputs so re-selecting the same image triggers change event */
+    try{fi.value='';}catch{}
+    try{if(ficEl)ficEl.value='';}catch{}
   }catch(err){
     clearInterval(it);dz.classList.remove('scanning');
     document.getElementById('loading').classList.remove('show');
