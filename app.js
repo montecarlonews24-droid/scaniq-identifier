@@ -136,12 +136,19 @@ async function runScan(){
     ]}]};
     if(needsLive)body.tools=[{type:'web_search_20250305',name:'web_search'}];
     const bodyStr=JSON.stringify(body);
-    let resp,lastErr;
-    for(let attempt=0;attempt<3;attempt++){try{if(attempt>0){document.getElementById('lt').textContent='RETRYING...';document.getElementById('ls').textContent='Attempt '+(attempt+1)+' of 3 — please wait';}resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:bodyStr});break;}catch(e){lastErr=e;if(attempt<2)await new Promise(r=>setTimeout(r,1200));}}
-    if(!resp)throw new Error('Connection failed. Check internet.');
-    if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'API Error '+resp.status);}
-    const data=await resp.json();
-    let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+    let raw='',lastErr;
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        if(attempt>0){document.getElementById('lt').textContent='RETRY '+attempt+' OF 3';document.getElementById('ls').textContent='High demand — please wait...';await new Promise(r=>setTimeout(r,2500));}
+        const resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:bodyStr});
+        const data=await resp.json();
+        const errMsg=data.error?.message||'';
+        if(!resp.ok||errMsg){lastErr=new Error(errMsg||'API Error '+resp.status);continue;}
+        raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+        break;
+      }catch(e){lastErr=e;}
+    }
+    if(!raw)throw lastErr||new Error('Connection failed. Check internet.');
     const clean=raw.replace(/```json|```/g,'').trim();
     let result;
     try{result=JSON.parse(clean);}catch{const m=clean.match(/\{[\s\S]*\}/);if(m)result=JSON.parse(m[0]);else throw new Error('Parse error. Retry.');}
