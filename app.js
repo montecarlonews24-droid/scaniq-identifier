@@ -521,12 +521,15 @@ async function sendScanChat(preset){
     const resp=await fetch(API_PROXY,{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await resp.json();
+    if(data.error?.message)throw new Error(data.error.message);
     let reply='';for(const b of(data.content||[]))if(b.type==='text')reply+=b.text;
+    if(!reply)throw new Error('Empty response. Please try again.');
     scanChatHistory.push({role:'assistant',content:reply});
     const typing=document.getElementById('scan-typing');
-    if(typing){typing.classList.remove('typing');typing.id='';typing.innerHTML=reply;}
+    if(typing){typing.classList.remove('typing');typing.id='';typing.innerHTML=reply.replace(/\n/g,'<br>');}
     if(send)send.disabled=false;msgs.scrollTop=msgs.scrollHeight;
   }catch(err){
+    scanChatHistory.pop();
     const typing=document.getElementById('scan-typing');
     if(typing){typing.classList.remove('typing');typing.id='';typing.textContent='Error: '+err.message;}
     if(send)send.disabled=false;
