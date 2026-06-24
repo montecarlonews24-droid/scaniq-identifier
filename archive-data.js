@@ -6,7 +6,7 @@ let imgB64=null,imgMime='image/jpeg',selCat='auto';
 let hist=JSON.parse(localStorage.getItem('sq4_hist')||'[]');
 let scanCount=parseInt(localStorage.getItem('sq4_cnt')||'0');
 document.getElementById('scan-counter').textContent=scanCount;
-const API_PROXY='https://scaniq-identifier.vercel.app/api/scan';
+const API_PROXY='https://scaniq-proxy.montecarlo-news24.workers.dev';
 const ARCHIVE_DB = {
   animals: {
     sources:[
