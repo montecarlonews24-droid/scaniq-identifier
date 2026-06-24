@@ -123,6 +123,8 @@ async function runScan(){
   document.getElementById('btn-scan').disabled=true;
   dz.classList.add('scanning');
   const arc=getArchive(selCat);
+  document.getElementById('lt').textContent='SCANNING...';
+  document.getElementById('ls').textContent='Please wait';
   const msgs=[['VISUAL ANALYSIS','Claude Vision mapping image'],['ARCHIVE QUERY','Cross-referencing '+arc.sources.length+' knowledge bases'],['VALUE MATRIX','Multi-dimensional assessment'],['COMPILING','Finalizing intelligence report']];
   let mi=0;
   const it=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('lt').textContent=msgs[mi][0];document.getElementById('ls').textContent=msgs[mi][1];},2000);
@@ -133,9 +135,10 @@ async function runScan(){
       {type:'text',text:buildPrompt(selCat)}
     ]}]};
     if(needsLive)body.tools=[{type:'web_search_20250305',name:'web_search'}];
-    const resp=await fetch(API_PROXY,{method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body)});
+    const bodyStr=JSON.stringify(body);
+    let resp,lastErr;
+    for(let attempt=0;attempt<3;attempt++){try{if(attempt>0){document.getElementById('lt').textContent='RETRYING...';document.getElementById('ls').textContent='Attempt '+(attempt+1)+' of 3 — please wait';}resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:bodyStr});break;}catch(e){lastErr=e;if(attempt<2)await new Promise(r=>setTimeout(r,1200));}}
+    if(!resp)throw new Error('Connection failed. Check internet.');
     if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'API Error '+resp.status);}
     const data=await resp.json();
     let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
