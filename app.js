@@ -149,9 +149,14 @@ async function runScan(){
       }catch(e){lastErr=e;}
     }
     if(!raw)throw lastErr||new Error('Connection failed. Check internet.');
-    const clean=raw.replace(/```json|```/g,'').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').trim();
+    const clean=raw
+      .replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'')
+      .replace(/[\u2018\u2019]/g,"'")
+      .replace(/[\u201C\u201D]/g,'"')
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'')
+      .trim();
     let result;
-    try{result=JSON.parse(clean);}catch{const m=clean.match(/\{[\s\S]*\}/);if(m)result=JSON.parse(m[0]);else throw new Error('Parse error. Retry.');}
+    try{const m=clean.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON found');result=JSON.parse(m[0]);}catch{throw new Error('Parse error. Retry.');}
     clearInterval(it);dz.classList.remove('scanning');document.getElementById('loading').classList.remove('show');
     try{scanCount++;localStorage.setItem('sq4_cnt',scanCount);}catch{}
     document.getElementById('scan-counter').textContent=scanCount;
@@ -297,8 +302,7 @@ async function runNutriScan(){
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
-    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
-    document.getElementById('loading-nutri').classList.remove('show');
+    const r=JSON.parse((()=>{const c=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON found');return m[0];})());
     document.getElementById('btn-nutri').disabled=false;
     if(!r.food_identified){showErrBox('err-nutri','No food detected. Try a clearer photo of your meal.');return;}
     lastNutriResult=r;
@@ -396,7 +400,7 @@ async function runOCR(){
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
-    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
+    const r=JSON.parse((()=>{const c=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON found');return m[0];})());
     document.getElementById('loading-ocr').classList.remove('show');
     document.getElementById('btn-ocr').disabled=false;
     if(!r.extracted_text){showErrBox('err-ocr','No text detected. Try a clearer image.');return;}
@@ -664,7 +668,7 @@ async function runAuthScan(){
     if(!resp.ok)throw new Error('API Error '+resp.status);
     const data=await resp.json();
     let raw='';for(const b of(data.content||[]))if(b.type==='text')raw+=b.text;
-    const r=JSON.parse(raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/)[0]);
+    const r=JSON.parse((()=>{const c=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON found');return m[0];})());
     document.getElementById('loading-auth').classList.remove('show');
     document.getElementById('drop-zone-auth').classList.remove('scanning');
     document.getElementById('btn-auth').disabled=false;
