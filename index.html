@@ -729,12 +729,15 @@ async function translateScanResult(lang) {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        prompt: `Translate the following scan result to ${lang}. Keep all labels, structure, and numbers. Only translate the text, do not add commentary.\n\n${_scanRawText}`,
-        maxTokens: 1500
+        messages: [{
+          role: 'user',
+          content: `Translate the following scan result to ${lang}. Keep all labels, structure, and numbers. Only translate the text, do not add commentary.\n\n${_scanRawText}`
+        }],
+        max_tokens: 1500
       })
     });
     const data = await res.json();
-    const text = data.result || data.text || (data.candidates?.[0]?.content?.parts?.[0]?.text) || 'Translation failed.';
+    const text = data.content?.[0]?.text || 'Translation failed.';
     result.innerHTML = text.replace(/\n/g,'<br>');
     result.classList.add('show');
   } catch(e) {
