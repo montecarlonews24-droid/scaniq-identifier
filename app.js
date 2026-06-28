@@ -149,7 +149,7 @@ async function runScan(){
       }catch(e){lastErr=e;}
     }
     if(!raw)throw lastErr||new Error('Connection failed. Check internet.');
-    const clean=raw.replace(/```json|```/g,'').trim();
+    const clean=raw.replace(/```json|```/g,'').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').trim();
     let result;
     try{result=JSON.parse(clean);}catch{const m=clean.match(/\{[\s\S]*\}/);if(m)result=JSON.parse(m[0]);else throw new Error('Parse error. Retry.');}
     clearInterval(it);dz.classList.remove('scanning');document.getElementById('loading').classList.remove('show');
