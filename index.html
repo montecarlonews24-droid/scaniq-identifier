@@ -247,6 +247,20 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .translate-row{display:flex;gap:7px;margin-top:8px;align-items:center;}
 .lang-select{flex:1;background:var(--card2);border:1px solid var(--rim);border-radius:8px;padding:7px 10px;color:var(--text2);font-size:.74rem;outline:none;}
 .translate-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--cyan);background:rgba(0,229,255,.07);color:var(--cyan);font-size:.74rem;cursor:pointer;white-space:nowrap;}
+/* ── SCAN TRANSLATE ── */
+.scan-translate-wrap{margin:0 20px 14px;background:var(--card);border:1px solid var(--rim);border-radius:14px;overflow:hidden;display:none;}
+.scan-translate-wrap.show{display:block;animation:fadeUp .3s ease;}
+.scan-translate-head{padding:10px 14px;background:linear-gradient(135deg,rgba(0,229,255,.08),rgba(124,58,237,.05));border-bottom:1px solid var(--rim);font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--cyan);letter-spacing:.12em;display:flex;align-items:center;gap:7px;}
+.scan-translate-head::before{content:'🌐';font-size:.85rem;}
+.scan-lang-btns{display:flex;gap:6px;padding:10px 14px;flex-wrap:wrap;}
+.scan-lang-btn{flex:1;min-width:80px;padding:8px 6px;border-radius:8px;border:1px solid var(--rim);background:var(--card2);color:var(--text3);font-size:.7rem;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:center;transition:all .2s;white-space:nowrap;}
+.scan-lang-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.scan-lang-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.09);}
+.scan-translate-result{padding:0 14px 12px;font-size:.82rem;line-height:1.8;color:var(--text2);display:none;}
+.scan-translate-result.show{display:block;animation:fadeUp .25s ease;}
+.scan-translate-loading{display:none;align-items:center;gap:9px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--cyan);}
+.scan-translate-loading.show{display:flex;}
+.scan-translate-loading::before{content:'';width:14px;height:14px;border:2px solid var(--rim);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
 /* ── FOLLOW-UP CHAT ── */
 .chat-wrap{margin-top:14px;background:var(--card);border:1px solid var(--rim);border-radius:14px;overflow:hidden;display:none;}
 .chat-wrap.show{display:block;animation:fadeUp .3s ease;}
@@ -379,6 +393,19 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   </div>
   <div class="err-box" id="err-box"></div>
   <div id="results-wrap"><div class="result-card" id="result-card"></div>
+    <!-- TRANSLATE RESULT -->
+    <div class="scan-translate-wrap" id="scan-translate-wrap">
+      <div class="scan-translate-head">TRANSLATE RESULT</div>
+      <div class="scan-lang-btns">
+        <button class="scan-lang-btn" onclick="translateScanResult('English')">🇬🇧 EN</button>
+        <button class="scan-lang-btn" onclick="translateScanResult('French')">🇫🇷 FR</button>
+        <button class="scan-lang-btn" onclick="translateScanResult('Spanish')">🇪🇸 ES</button>
+        <button class="scan-lang-btn" onclick="translateScanResult('Russian')">🇷🇺 RU</button>
+        <button class="scan-lang-btn" onclick="translateScanResult('Chinese')">🇨🇳 ZH</button>
+      </div>
+      <div class="scan-translate-loading" id="scan-tr-loading">TRANSLATING...</div>
+      <div class="scan-translate-result" id="scan-tr-result"></div>
+    </div>
     <!-- FOLLOW-UP CHAT -->
     <div class="chat-wrap" id="scan-chat-wrap">
       <div class="chat-head">ASK FOLLOW-UP QUESTIONS</div>
@@ -652,6 +679,71 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.20.0/zxing.min.js"></script>
 <script src="archive-data.js"></script>
+<script>
+// ── SCAN TRANSLATE ──
+let _scanRawText = '';
+
+function showScanTranslate(rawText) {
+  _scanRawText = rawText || '';
+  const wrap = document.getElementById('scan-translate-wrap');
+  if (wrap) wrap.classList.add('show');
+}
+
+// Auto-detect when scan result appears and extract text
+const _trObserver = new MutationObserver(() => {
+  const rw = document.getElementById('results-wrap');
+  if (!rw || rw.style.display === 'none') return;
+  const card = document.getElementById('result-card');
+  if (!card || !card.innerText.trim()) return;
+  const wrap = document.getElementById('scan-translate-wrap');
+  if (wrap && !wrap.classList.contains('show')) {
+    _scanRawText = card.innerText.trim();
+    wrap.classList.add('show');
+    // reset buttons
+    document.querySelectorAll('.scan-lang-btn').forEach(b=>b.classList.remove('active'));
+    const tr = document.getElementById('scan-tr-result');
+    if(tr){tr.classList.remove('show');tr.innerHTML='';}
+  }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const rw = document.getElementById('results-wrap');
+  if (rw) _trObserver.observe(rw, {attributes:true, attributeFilter:['style'], childList:true, subtree:true});
+});
+
+async function translateScanResult(lang) {
+  if (!_scanRawText) return;
+  // update active button
+  document.querySelectorAll('.scan-lang-btn').forEach(b => {
+    b.classList.toggle('active', b.onclick?.toString().includes(`'${lang}'`));
+  });
+
+  const loading = document.getElementById('scan-tr-loading');
+  const result  = document.getElementById('scan-tr-result');
+  loading.classList.add('show');
+  result.classList.remove('show');
+  result.innerHTML = '';
+
+  try {
+    const res = await fetch('https://scaniq-proxy.montecarlo-news24.workers.dev', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        prompt: `Translate the following scan result to ${lang}. Keep all labels, structure, and numbers. Only translate the text, do not add commentary.\n\n${_scanRawText}`,
+        maxTokens: 1500
+      })
+    });
+    const data = await res.json();
+    const text = data.result || data.text || (data.candidates?.[0]?.content?.parts?.[0]?.text) || 'Translation failed.';
+    result.innerHTML = text.replace(/\n/g,'<br>');
+    result.classList.add('show');
+  } catch(e) {
+    result.innerHTML = '⚠️ Translation error. Try again.';
+    result.classList.add('show');
+  } finally {
+    loading.classList.remove('show');
+  }
+}
+</script>
 <script src="app.js"></script>
 </body>
 </html>
