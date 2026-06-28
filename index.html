@@ -134,11 +134,11 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(0,229,255,.09);border:1px solid rgba(0,229,255,.22);color:var(--cyan);font-size:.6rem;padding:2px 8px;border-radius:50px;margin-top:5px;font-family:'JetBrains Mono',monospace;}
 .live-pill::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cyan);animation:pulse 1.5s infinite;}
 .est-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(74,106,138,.08);border:1px solid var(--rim);color:var(--text3);font-size:.6rem;padding:2px 8px;border-radius:50px;margin-top:5px;font-family:'JetBrains Mono',monospace;}
-.result-desc{font-size:.86rem;line-height:1.8;color:var(--text2);margin-bottom:14px;}
+.result-desc{font-size:.97rem;line-height:1.9;color:var(--text2);margin-bottom:14px;}
 .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
 .det-item{background:var(--card2);border:1px solid var(--rim2);border-radius:10px;padding:9px 11px;}
 .det-label{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.15em;margin-bottom:2px;font-family:'JetBrains Mono',monospace;}
-.det-val{font-size:.8rem;font-weight:500;color:var(--text);}
+.det-val{font-size:.9rem;font-weight:500;color:var(--text);}
 /* SCORE */
 .score-wrap{display:flex;align-items:center;gap:13px;background:var(--card2);border:1px solid var(--rim);border-radius:var(--r);padding:13px;margin-bottom:14px;}
 .score-ring{position:relative;width:66px;height:66px;flex-shrink:0;}
@@ -175,7 +175,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .market-eye{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gold);letter-spacing:.15em;margin-bottom:3px;}
 /* FACTS */
 .facts-head{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--violet2);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;}
-.fact{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--rim2);font-size:.8rem;line-height:1.7;color:var(--text2);}
+.fact{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--rim2);font-size:.92rem;line-height:1.8;color:var(--text2);}
 .fact-dot{width:5px;height:5px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet2));flex-shrink:0;margin-top:8px;}
 /* HISTORY */
 .hist-section{padding:0 20px 20px;display:none;}
@@ -256,7 +256,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .scan-lang-btn{flex:1;min-width:80px;padding:8px 6px;border-radius:8px;border:1px solid var(--rim);background:var(--card2);color:var(--text3);font-size:.7rem;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:center;transition:all .2s;white-space:nowrap;}
 .scan-lang-btn:hover{border-color:var(--cyan);color:var(--cyan);}
 .scan-lang-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.09);}
-.scan-translate-result{padding:0 14px 12px;font-size:.82rem;line-height:1.8;color:var(--text2);display:none;}
+.scan-translate-result{padding:0 14px 12px;font-size:.95rem;line-height:1.9;color:var(--text2);display:none;}
 .scan-translate-result.show{display:block;animation:fadeUp .25s ease;}
 .scan-translate-loading{display:none;align-items:center;gap:9px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--cyan);}
 .scan-translate-loading.show{display:flex;}
@@ -696,11 +696,10 @@ const _trObserver = new MutationObserver(() => {
   if (!rw || rw.style.display === 'none') return;
   const card = document.getElementById('result-card');
   if (!card || !card.innerText.trim()) return;
+  _scanRawText = card.innerText.trim();
   const wrap = document.getElementById('scan-translate-wrap');
   if (wrap && !wrap.classList.contains('show')) {
-    _scanRawText = card.innerText.trim();
     wrap.classList.add('show');
-    // reset buttons
     document.querySelectorAll('.scan-lang-btn').forEach(b=>b.classList.remove('active'));
     const tr = document.getElementById('scan-tr-result');
     if(tr){tr.classList.remove('show');tr.innerHTML='';}
@@ -712,10 +711,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function translateScanResult(lang) {
+  // Always re-read result card before translating
+  const _card = document.getElementById('result-card');
+  if (_card && _card.innerText.trim()) _scanRawText = _card.innerText.trim();
   if (!_scanRawText) return;
-  // update active button
   document.querySelectorAll('.scan-lang-btn').forEach(b => {
-    b.classList.toggle('active', b.onclick?.toString().includes(`'${lang}'`));
+    b.classList.toggle('active', b.onclick?.toString().includes("'" + lang + "'"));
   });
 
   const loading = document.getElementById('scan-tr-loading');
@@ -738,7 +739,9 @@ async function translateScanResult(lang) {
     });
     const data = await res.json();
     const text = data.content?.[0]?.text || 'Translation failed.';
-    result.innerHTML = text.replace(/\n/g,'<br>');
+    // Keep stars inline: replace newlines between emoji stars with space
+    const cleaned = text.replace(/(⭐|★|✦|🌟)\n(⭐|★|✦|🌟)/g,'$1 $2').replace(/\n/g,'<br>');
+    result.innerHTML = cleaned;
     result.classList.add('show');
   } catch(e) {
     result.innerHTML = '⚠️ Translation error. Try again.';
