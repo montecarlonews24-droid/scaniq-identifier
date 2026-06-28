@@ -115,6 +115,17 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .load-ring{width:52px;height:52px;border:2px solid var(--rim);border-top-color:var(--cyan);border-right-color:var(--gold);border-radius:50%;animation:spin .85s linear infinite;}
 .load-text{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--cyan);letter-spacing:.1em;}
 .load-sub{font-size:.7rem;color:var(--text3);}
+/* PROGRESS STEPS */
+.progress-steps{display:flex;flex-direction:column;gap:7px;margin-top:14px;width:100%;max-width:260px;}
+.ps-item{display:flex;align-items:center;gap:9px;padding:7px 12px;border-radius:9px;background:var(--card);border:1px solid var(--rim2);opacity:0;transform:translateX(-8px);transition:opacity .3s,transform .3s,border-color .3s,background .3s;}
+.ps-item.active{opacity:1;transform:translateX(0);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.05);}
+.ps-item.done{opacity:1;transform:translateX(0);border-color:rgba(0,255,159,.25);background:rgba(0,255,159,.04);}
+.ps-ico{font-size:.95rem;width:20px;text-align:center;}
+.ps-label{flex:1;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text2);}
+.ps-item.active .ps-label{color:var(--cyan);}
+.ps-item.done .ps-label{color:var(--green);}
+.ps-check{font-size:.75rem;color:var(--green);opacity:0;transition:opacity .2s;}
+.ps-item.done .ps-check{opacity:1;}
 /* ERROR */
 .err-box{background:rgba(255,68,102,.07);border:1px solid rgba(255,68,102,.25);border-radius:var(--r);margin:18px 20px;padding:13px;font-size:.8rem;color:#ff8899;display:none;}
 .err-box.show{display:block;animation:fadeUp .3s ease;}
@@ -390,6 +401,12 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
     <div class="load-ring"></div>
     <div class="load-text" id="lt">ANALYZING...</div>
     <div class="load-sub" id="ls">Claude Vision processing</div>
+    <div class="progress-steps" id="progress-steps">
+      <div class="ps-item" id="ps0"><span class="ps-ico">🔍</span><span class="ps-label">Analyzing image...</span><span class="ps-check">✓</span></div>
+      <div class="ps-item" id="ps1"><span class="ps-ico">🧠</span><span class="ps-label">Running AI detection...</span><span class="ps-check">✓</span></div>
+      <div class="ps-item" id="ps2"><span class="ps-ico">💎</span><span class="ps-label">Checking authenticity...</span><span class="ps-check">✓</span></div>
+      <div class="ps-item" id="ps3"><span class="ps-ico">📊</span><span class="ps-label">Generating report...</span><span class="ps-check">✓</span></div>
+    </div>
   </div>
   <div class="err-box" id="err-box"></div>
   <div id="results-wrap"><div class="result-card" id="result-card"></div>
@@ -681,6 +698,36 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.20.0/zxing.min.js"></script>
 <script src="archive-data.js"></script>
 <script>
+// ── PROGRESS STEPS ──
+const _psTimings = [800, 1200, 1000, 800]; // total ~3.8s
+function resetProgressSteps() {
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('ps'+i);
+    if(el){el.className='ps-item';}
+  }
+}
+function runProgressSteps() {
+  resetProgressSteps();
+  const steps = document.getElementById('progress-steps');
+  if(steps) steps.style.display='flex';
+  let delay = 0;
+  for(let i=0;i<4;i++){
+    const d = delay;
+    setTimeout(()=>{
+      const el=document.getElementById('ps'+i);
+      if(!el)return;
+      // mark previous as done
+      if(i>0){const prev=document.getElementById('ps'+(i-1));if(prev)prev.className='ps-item done';}
+      el.className='ps-item active';
+      // mark last step done after its duration
+      if(i===3){setTimeout(()=>{el.className='ps-item done';},_psTimings[3]);}
+    }, d);
+    delay += _psTimings[i];
+  }
+  // return total duration promise so scan waits at least this long
+  return new Promise(r=>setTimeout(r, _psTimings.reduce((a,b)=>a+b,0)));
+}
+
 // ── SCAN TRANSLATE ──
 let _scanRawText = '';
 
@@ -752,5 +799,32 @@ async function translateScanResult(lang) {
 }
 </script>
 <script src="app.js"></script>
-</body>
+<script>
+// ── PROGRESS STEPS INTEGRATION ──
+// Hook into the existing runScan() from app.js
+(function(){
+  const _origRunScan = window.runScan;
+  if(typeof _origRunScan !== 'function') return;
+  window.runScan = async function(){
+    // Start progress steps animation + API call in parallel
+    const progressPromise = runProgressSteps();
+    // Wrap original runScan to capture its promise
+    const scanPromise = _origRunScan.call(this);
+    // Wait for BOTH to finish (whichever is longer wins)
+    await Promise.all([progressPromise, scanPromise]);
+  };
+  // Also hook into other scan modes that show loading
+  const _modesWithProgress = ['runFaceScan','runAuthScan','runNutriScan','runOCRScan'];
+  _modesWithProgress.forEach(fn=>{
+    if(typeof window[fn]==='function'){
+      const orig=window[fn];
+      window[fn]=async function(){
+        const p=runProgressSteps();
+        const s=orig.call(this);
+        await Promise.all([p,s]);
+      };
+    }
+  });
+})();
+</script>
 </html>
