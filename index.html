@@ -699,6 +699,29 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   <div style="padding:14px 20px;">
     <button class="btn-clear" onclick="clearHist()">&#128465; Clear History</button>
   </div>
+
+  <!-- CONTACT US -->
+  <div style="padding:0 20px 10px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:7px;">
+      <span style="color:var(--cyan-dim)">//</span> Contact Us
+    </div>
+    <div style="background:var(--card);border:1px solid var(--rim);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;">
+      <input id="contact-name" type="text" placeholder="Your Name"
+        style="background:var(--card2);border:1px solid var(--rim);border-radius:9px;padding:10px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;width:100%;">
+      <input id="contact-email" type="email" placeholder="Your Email"
+        style="background:var(--card2);border:1px solid var(--rim);border-radius:9px;padding:10px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;width:100%;">
+      <input id="contact-subject" type="text" placeholder="Subject"
+        style="background:var(--card2);border:1px solid var(--rim);border-radius:9px;padding:10px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;width:100%;">
+      <textarea id="contact-message" placeholder="Your message..." rows="4"
+        style="background:var(--card2);border:1px solid var(--rim);border-radius:9px;padding:10px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;width:100%;resize:none;line-height:1.6;"></textarea>
+      <button id="contact-send-btn" onclick="sendContactForm()"
+        style="background:linear-gradient(135deg,rgba(0,229,255,.09),rgba(0,229,255,.04));border:1px solid var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700;letter-spacing:.1em;padding:12px;border-radius:10px;cursor:pointer;transition:all .2s;">
+        ✉ SEND MESSAGE
+      </button>
+      <div id="contact-status" style="font-family:'JetBrains Mono',monospace;font-size:.72rem;text-align:center;display:none;"></div>
+    </div>
+  </div>
+
   <div class="app-info">SCANIQ v4.1 // UNIVERSAL AI SCANNER<br>ENGINE // CLAUDE VISION · ANTHROPIC<br>BUILD // MONTECARLO NEWS24</div>
 </div>
 
@@ -710,6 +733,8 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   <button class="nav-btn" onclick="sp('settings',this)"><span class="nav-ico">⚙</span>System</button>
 </nav>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('4hU4JT7mCPK4QVVHf');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.20.0/zxing.min.js"></script>
 <script src="archive-data.js"></script>
 <script>
@@ -815,7 +840,50 @@ async function translateScanResult(lang) {
 </script>
 <script src="app.js"></script>
 <script>
-// ── PROGRESS STEPS INTEGRATION ──
+// ── CONTACT US ──
+async function sendContactForm() {
+  const name    = document.getElementById('contact-name').value.trim();
+  const email   = document.getElementById('contact-email').value.trim();
+  const subject = document.getElementById('contact-subject').value.trim();
+  const message = document.getElementById('contact-message').value.trim();
+  const status  = document.getElementById('contact-status');
+  const btn     = document.getElementById('contact-send-btn');
+
+  if (!name || !email || !subject || !message) {
+    status.style.display = 'block';
+    status.style.color = '#ff6688';
+    status.textContent = '⚠ Please fill in all fields.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ SENDING...';
+  status.style.display = 'none';
+
+  try {
+    await emailjs.send('service_rbifbx9', 'template_8v50cjs', {
+      from_name: name,
+      reply_to:  email,
+      subject:   subject,
+      message:   message
+    });
+    status.style.display = 'block';
+    status.style.color = '#00dc96';
+    status.textContent = '✅ Message sent! We\'ll reply to your email.';
+    document.getElementById('contact-name').value = '';
+    document.getElementById('contact-email').value = '';
+    document.getElementById('contact-subject').value = '';
+    document.getElementById('contact-message').value = '';
+  } catch(e) {
+    status.style.display = 'block';
+    status.style.color = '#ff6688';
+    status.textContent = '⚠ Failed to send. Please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✉ SEND MESSAGE';
+  }
+}
+
 // Hook into the existing runScan() from app.js
 (function(){
   const _origRunScan = window.runScan;
