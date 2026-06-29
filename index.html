@@ -162,6 +162,21 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .score-verdict{font-size:.9rem;font-weight:600;margin:3px 0;line-height:1.3;}
 .score-exp{font-size:.73rem;color:var(--text3);line-height:1.5;}
 /* MATRIX */
+/* ===== MEDICAL INFO PANEL ===== */
+.med-panel{background:linear-gradient(135deg,rgba(0,180,120,.08),rgba(0,120,180,.08));border:1px solid rgba(0,220,150,.25);border-radius:14px;padding:16px;margin-bottom:16px;}
+.med-panel-head{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:#00dc96;letter-spacing:.18em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.med-panel-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,#00dc96,transparent);}
+.med-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.med-item{background:rgba(0,0,0,.25);border-radius:8px;padding:8px 10px;}
+.med-item-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);letter-spacing:.12em;margin-bottom:3px;}
+.med-item-val{font-size:.82rem;color:var(--text1);font-weight:500;}
+.med-warn{background:rgba(220,60,60,.08);border:1px solid rgba(220,60,60,.2);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.med-warn-head{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#ff6b6b;letter-spacing:.1em;margin-bottom:6px;}
+.med-warn-item{font-size:.78rem;color:var(--text2);margin-bottom:3px;padding-left:10px;border-left:2px solid rgba(220,60,60,.4);}
+.med-gen{background:rgba(100,180,255,.06);border:1px solid rgba(100,180,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.med-gen-head{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#64b4ff;letter-spacing:.1em;margin-bottom:6px;}
+.med-gen-item{font-size:.78rem;color:var(--text2);margin-bottom:3px;padding-left:10px;border-left:2px solid rgba(100,180,255,.3);}
+.med-disclaimer{font-size:.72rem;color:var(--text3);text-align:center;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
 .vm-wrap{margin-bottom:14px;}
 .vm-head{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--violet2);letter-spacing:.18em;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:8px;}
 .vm-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--violet),transparent);}
