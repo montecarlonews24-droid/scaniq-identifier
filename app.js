@@ -498,7 +498,20 @@ function renderScanChat(result,mode){
   const wrap=document.getElementById('scan-chat-wrap');
   if(!wrap)return;
   scanChatHistory=[];
-  scanChatContext=`You are SCANIQ, the world's most advanced product intelligence AI. The user just scanned: "${result.dish_name||result.name||'an item'}". Full scan data: ${JSON.stringify(result)}. When answering follow-up questions, provide DEEP, DETAILED, EXPERT-LEVEL answers. Include specific facts, prices, history, where to buy, rarity, tips, comparisons, warnings, and any other relevant intelligence. Never give short vague answers — always be thorough and informative.`;
+  const itemName=result.dish_name||result.name||'an item';
+  const itemCategory=result.category||result.subcategory||'';
+  const itemBrand=result.brand||result.manufacturer||'';
+  const itemCountry=result.origin||result.country||'';
+  scanChatContext=`You are SCANIQ, the world's most advanced product intelligence AI. The user scanned: "${itemName}" ${itemBrand?'by '+itemBrand:''} ${itemCategory?'('+itemCategory+')':''} ${itemCountry?'from '+itemCountry:''}.
+
+Full scan data: ${JSON.stringify(result)}.
+
+CRITICAL RULES:
+- PRICE questions: Give SPECIFIC real price ranges. Mention prices in USD AND local currency if the product origin is known. Cover pharmacy, online, and supermarket prices. Include average, discount, and premium price ranges. Never say "it depends" without giving actual numbers.
+- WHERE TO BUY: Name SPECIFIC real stores and websites globally — including Amazon, eBay, local pharmacies, regional supermarkets, and country-specific platforms (e.g. Noon, Souq, Carrefour for Middle East; Boots, Tesco for UK; etc). If prescription required, say so clearly.
+- LOCATION AWARENESS: If the product origin or brand suggests a specific region, tailor buying advice to that region first, then globally.
+- All answers: Be SPECIFIC, FACTUAL, ACTIONABLE. Use real data. No vague answers.
+- Format with short clear paragraphs.`;
   const suggestions={
     nutri:['🍳 How do I cook this?','💪 Is this healthy for weight loss?','🔄 What are similar alternatives?','🥗 Suggest a balanced meal'],
     default:['💰 What is a fair price?','🛒 Where can I buy this?','📊 How rare is this?','🔍 Tell me more about this'],
