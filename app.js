@@ -191,8 +191,31 @@ function renderResult(r,isLive,cat){
   const ov=Math.min(100,Math.max(0,parseInt(r.overall_value_score)||0));
   const rc=ov>=80?'var(--cyan)':ov>=60?'var(--green)':ov>=40?'#f59e0b':'var(--red)';
   const circ=2*Math.PI*29,dash=circ*(ov/100);
+  // ===== PHARMACEUTICAL CHECK =====
+  const isPharma=(r.category||'').toLowerCase().includes('pharma')||(r.category||'').toLowerCase().includes('medic')||(r.subcategory||'').toLowerCase().includes('pharma')||(r.subcategory||'').toLowerCase().includes('medic')||(r.category||'').toLowerCase().includes('drug');
   let matrixHtml='';
-  if(showMatrix&&dims.length){
+  if(isPharma){
+    // Medical Info Panel بدلاً من Value Matrix للأدوية
+    const genericName=r.subtitle||r.name||'';
+    const dosage=(r.details||[]).find(d=>d.label&&d.label.toLowerCase().includes('dos'))?.value||'';
+    const origin=(r.details||[]).find(d=>d.label&&d.label.toLowerCase().includes('origin'))?.value||'';
+    const priceNote=r.price?.note||'';
+    const priceVal=r.price?.value||'';
+    const warnings=(r.facts||[]).filter(f=>/warn|caution|risk|side|prescription|consult/i.test(f));
+    const generics=(r.facts||[]).filter(f=>/generic|equivalent|alternative/i.test(f));
+    matrixHtml='<div class="med-panel">'+
+      '<div class="med-panel-head">💊 MEDICAL INTELLIGENCE</div>'+
+      '<div class="med-grid">'+
+        (genericName?'<div class="med-item"><div class="med-item-label">GENERIC NAME</div><div class="med-item-val">'+genericName+'</div></div>':'')+
+        (dosage?'<div class="med-item"><div class="med-item-label">DOSAGE FORM</div><div class="med-item-val">'+dosage+'</div></div>':'')+
+        (origin?'<div class="med-item"><div class="med-item-label">MANUFACTURER</div><div class="med-item-val">'+origin+'</div></div>':'')+
+        ((priceVal&&priceVal!=='N/A')?'<div class="med-item"><div class="med-item-label">💰 PRICE RANGE</div><div class="med-item-val">'+priceVal+(priceNote?' · '+priceNote:'')+'</div></div>':'')+
+      '</div>'+
+      (warnings.length?'<div class="med-warn"><div class="med-warn-head">⚠️ WARNINGS</div>'+warnings.map(w=>'<div class="med-warn-item">'+w+'</div>').join('')+'</div>':'')+
+      (generics.length?'<div class="med-gen"><div class="med-gen-head">🔄 GENERIC ALTERNATIVES</div>'+generics.map(g=>'<div class="med-gen-item">'+g+'</div>').join('')+'</div>':'')+
+      '<div class="med-disclaimer">⚕️ Always consult a licensed physician or pharmacist before use.</div>'+
+    '</div>';
+  } else if(showMatrix&&dims.length){
     const rows=dims.map((dk,ri)=>{
       const dv=vm[dk]||{score:0,note:'',archive_ref:''};
       const meta=DMETA[dk]||{e:'·',l:dk,c:'#8ab0cc'};
