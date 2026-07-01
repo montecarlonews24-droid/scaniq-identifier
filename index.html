@@ -783,7 +783,7 @@ const _trObserver = new MutationObserver(() => {
   if (!rw || rw.style.display === 'none') return;
   const card = document.getElementById('result-card');
   if (!card || !card.innerText.trim()) return;
-  _scanRawText = card.innerText.trim();
+  // _scanRawText is now set by renderResult() in app.js from structured data
   const wrap = document.getElementById('scan-translate-wrap');
   if (wrap && !wrap.classList.contains('show')) {
     wrap.classList.add('show');
@@ -800,7 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function translateScanResult(lang) {
   // Always re-read result card before translating
   const _card = document.getElementById('result-card');
-  if (_card && _card.innerText.trim()) _scanRawText = _card.innerText.trim();
+  // _scanRawText already set by renderResult() — do not override with innerText
   if (!_scanRawText) return;
   document.querySelectorAll('.scan-lang-btn').forEach(b => {
     b.classList.toggle('active', b.onclick?.toString().includes("'" + lang + "'"));
