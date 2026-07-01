@@ -255,6 +255,30 @@ function renderResult(r,isLive,cat){
     '</div>';
   document.getElementById('results-wrap').style.display='block';
   document.getElementById('results-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  // Build clean translate text from structured result data
+  if(typeof window._scanRawText !== 'undefined'){
+    const _p=[];
+    if(r.name)_p.push('Name: '+r.name);
+    if(r.subtitle)_p.push('Category: '+r.subtitle);
+    if(r.price?.value&&r.price.value!=='N/A')_p.push('Market Value: '+r.price.value+(r.price.note?' — '+r.price.note:''));
+    if(r.description)_p.push('
+'+r.description);
+    if(r.overall_verdict)_p.push('Overall Value: '+r.overall_verdict+(r.overall_explanation?' — '+r.overall_explanation:''));
+    if(r.details?.length)_p.push('
+Details:
+'+r.details.map(d=>d.label+': '+(d.value||'—')).join('
+'));
+    if(r.facts?.length)_p.push('
+Key Facts:
+'+r.facts.join('
+'));
+    if(r.market_note)_p.push('
+Market: '+r.market_note);
+    if(r.legal_status)_p.push('
+Legal: '+r.legal_status);
+    window._scanRawText=_p.join('
+');
+  }
   renderScanChat(r,'default');
 }
 
