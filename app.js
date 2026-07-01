@@ -91,26 +91,48 @@ CATS.forEach(c=>mkChip(c.key,c.e,c.n));
 function buildPrompt(cat){
   const arc=getArchive(cat);
   const info=CATS.find(c=>c.key===cat);
-  const ctx=info?'Category: "'+info.n+'"':'Auto-detect category';
+  const ctx=info?'Category: "'+info.n+'"':\'Auto-detect category\';
   const dims=arc.dims;
   const needsLive=arc.live;
   const srcInstr=arc.sources.map(s=>'- '+s.name+' ('+s.url+'): '+s.info).join('\n');
   const dimBlock=dims.map(d=>'"'+d+'":{"score":0,"note":"","archive_ref":""}').join(',');
   const deep=document.getElementById('t-deep').classList.contains('on');
-  return 'You are SCANIQ, the world\'s most advanced visual intelligence system.\n'+ctx+'\n\n'+
+
+  // Categories where value matrix scores are meaningless — skip them
+  const NO_MATRIX_CATS=['pharma','medicine','drug','medical','document','identity','id-card','passport','certificate','chemical','herb','plant-med','ingredient','supplement'];
+  const catKey=(cat||'auto').toLowerCase();
+  const catName=(info?.n||'auto').toLowerCase();
+  const skipMatrix=NO_MATRIX_CATS.some(k=>catKey.includes(k)||catName.includes(k));
+
+  // Smart details block based on category type
+  const detailsBlock=skipMatrix
+    ? '[{"label":"Active Ingredient","value":""},{"label":"Dosage Form","value":""},{"label":"Manufacturer","value":""},{"label":"Country of Origin","value":""},{"label":"Prescription","value":"Rx / OTC"},{"label":"Storage","value":""}]'
+    : '[{"label":"Classification / ID","value":"e.g. IUCN LC · NGC MS65"},{"label":"Origin","value":""},{"label":"Era / Date","value":""},{"label":"Material","value":""},{"label":"Condition","value":""},{"label":"Rarity","value":""}]';
+
+  const matrixBlock=skipMatrix
+    ? '"value_matrix":{},\n"overall_value_score":0,\n"overall_verdict":"N/A",\n"overall_explanation":"Value scoring not applicable for this category",\n'
+    : '"value_matrix":{'+dimBlock+'},\n"overall_value_score":0,\n"overall_verdict":"short punchy phrase",\n"overall_explanation":"1-2 sentences",\n';
+
+  const factsCount=deep?8:6;
+  const factsPlaceholders=Array.from({length:factsCount},(_,i)=>'"detailed fact '+(i+1)+' — include specific data, numbers, or expert insight"').join(',');
+
+  return 'You are SCANIQ, the world\'s most advanced visual intelligence system. Provide DEEP, EXPERT-LEVEL analysis.\n'+ctx+'\n\n'+
     '=== KNOWLEDGE ARCHIVES ===\nReason with expert knowledge from these authoritative sources:\n'+srcInstr+'\n\n'+
     'Apply their classification standards, grading systems, and pricing methodologies precisely.\n\n'+
-    '=== OUTPUT: PURE JSON ONLY — NO MARKDOWN ===\n'+
-    '{\n"name":"",\n"subtitle":"scientific name / model number / catalog ID",\n"category":"",\n"category_emoji":"",\n'+
+    '=== DEPTH REQUIREMENT ===\n'+
+    '- Description: 5-6 expert sentences. Cover composition, mechanism/function, origin/history, notable characteristics, and real-world significance. Be specific — include names, numbers, dates, and technical details.\n'+
+    '- Facts: '+factsCount+' facts minimum. Each fact must contain a specific data point, statistic, or expert insight — not generic statements.\n'+
+    '- Details: Fill ALL 6 detail fields with precise values — no empty strings.\n'+
+    (skipMatrix?'- Value Matrix: This category does not require value scoring. Leave value_matrix empty.\n':'- Value Matrix: score 0-10 integer, note=one precise sentence with data, archive_ref=source name.\n')+
+    '\n=== OUTPUT: PURE JSON ONLY — NO MARKDOWN ===\n'+
+    '{\n"name":"",\n"subtitle":"scientific name / model number / catalog ID / brand",\n"category":"",\n"category_emoji":"",\n'+
     '"confidence":"High|Medium|Low",\n'+
-    '"price":{"value":"price or N/A","unit":"per unit/kg/m2 etc","note":"retail/auction/estimated","is_live_needed":'+needsLive+'},\n'+
-    '"description":"'+(deep?'4-5':'2-3')+' expert sentences",\n'+
-    '"details":[{"label":"Classification / ID","value":"e.g. IUCN LC · NGC MS65"},{"label":"Origin","value":""},{"label":"Era / Date","value":""},{"label":"Material","value":""}],\n'+
-    '"value_matrix":{'+dimBlock+'},\n'+
-    '"overall_value_score":0,\n"overall_verdict":"short punchy phrase",\n"overall_explanation":"1-2 sentences",\n'+
-    '"legal_status":"cite laws if applicable, else empty",\n"market_note":"market dynamics",\n'+
-    '"facts":["fact 1","fact 2","fact 3"'+(deep?',"fact 4","fact 5"':'')+']\n}\n\n'+
-    'MATRIX: score 0-10 integer, note=one precise sentence with archive reference, archive_ref=source name, overall_value_score=weighted 0-100';
+    '"price":{"value":"specific price range e.g. $12–$45","unit":"per unit/kg/pack","note":"retail/pharmacy/market — be specific","is_live_needed":'+needsLive+'},\n'+
+    '"description":"5-6 expert sentences with technical depth, specific data, and real-world context",\n'+
+    '"details":'+detailsBlock+',\n'+
+    matrixBlock+
+    '"legal_status":"cite specific laws, regulations, or restrictions if applicable — else empty string",\n"market_note":"specific market dynamics, trends, demand drivers",\n'+
+    '"facts":['+factsPlaceholders+']\n}\n';
 }
 
 async function runScan(){
@@ -255,29 +277,19 @@ function renderResult(r,isLive,cat){
     '</div>';
   document.getElementById('results-wrap').style.display='block';
   document.getElementById('results-wrap').scrollIntoView({behavior:'smooth',block:'start'});
-  // Build clean translate text from structured result data
-  if(typeof window._scanRawText !== 'undefined'){
+  // Build clean translate text from structured result data (avoids JSON bleed)
+  if(typeof window._scanRawText!=='undefined'){
     const _p=[];
     if(r.name)_p.push('Name: '+r.name);
     if(r.subtitle)_p.push('Category: '+r.subtitle);
     if(r.price?.value&&r.price.value!=='N/A')_p.push('Market Value: '+r.price.value+(r.price.note?' — '+r.price.note:''));
-    if(r.description)_p.push('
-'+r.description);
-    if(r.overall_verdict)_p.push('Overall Value: '+r.overall_verdict+(r.overall_explanation?' — '+r.overall_explanation:''));
-    if(r.details?.length)_p.push('
-Details:
-'+r.details.map(d=>d.label+': '+(d.value||'—')).join('
-'));
-    if(r.facts?.length)_p.push('
-Key Facts:
-'+r.facts.join('
-'));
-    if(r.market_note)_p.push('
-Market: '+r.market_note);
-    if(r.legal_status)_p.push('
-Legal: '+r.legal_status);
-    window._scanRawText=_p.join('
-');
+    if(r.description)_p.push('\n'+r.description);
+    if(r.overall_verdict&&r.overall_verdict!=='N/A')_p.push('Overall Value: '+r.overall_verdict+(r.overall_explanation?' — '+r.overall_explanation:''));
+    if(r.details?.length)_p.push('\nDetails:\n'+r.details.map(d=>d.label+': '+(d.value||'—')).join('\n'));
+    if(r.facts?.length)_p.push('\nKey Facts:\n'+r.facts.join('\n'));
+    if(r.market_note)_p.push('\nMarket: '+r.market_note);
+    if(r.legal_status)_p.push('\nLegal: '+r.legal_status);
+    window._scanRawText=_p.join('\n');
   }
   renderScanChat(r,'default');
 }
