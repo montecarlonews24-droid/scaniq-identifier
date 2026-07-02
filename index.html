@@ -439,6 +439,31 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .cmp-winner{background:linear-gradient(135deg,rgba(0,220,150,.1),rgba(0,220,150,.03));border:1px solid rgba(0,220,150,.3);border-radius:14px;padding:14px;margin-bottom:12px;text-align:center;}
 .cmp-verdict-card{background:var(--card);border:1px solid var(--rim);border-radius:14px;padding:14px;margin-bottom:10px;}
 
+
+/* ══ PORTFOLIO ══ */
+.pf-hero{background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(251,191,36,.02));border:1px solid rgba(251,191,36,.25);border-radius:18px;padding:20px;text-align:center;margin-bottom:14px;}
+.pf-total{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900;color:#fbbf24;line-height:1;}
+.pf-total-lbl{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--text3);letter-spacing:.2em;margin-bottom:8px;}
+.pf-meta{font-size:.76rem;color:var(--text2);margin-top:8px;}
+.pf-cat-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--rim2);}
+.pf-cat-ico{font-size:1.3rem;width:32px;text-align:center;}
+.pf-cat-info{flex:1;min-width:0;}
+.pf-cat-name{font-size:.84rem;color:var(--text);font-weight:600;}
+.pf-cat-bar{background:var(--card2);border-radius:5px;height:6px;overflow:hidden;margin-top:4px;}
+.pf-cat-fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);}
+.pf-cat-val{text-align:right;flex-shrink:0;}
+.pf-cat-amount{font-size:.82rem;color:#fbbf24;font-weight:700;}
+.pf-cat-pct{font-size:.64rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.pf-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--rim);border-radius:12px;padding:10px;margin-bottom:7px;}
+.pf-item img{width:48px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0;}
+.pf-item-info{flex:1;min-width:0;}
+.pf-item-name{font-size:.82rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-item-cat{font-size:.66rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.pf-item-val{font-size:.84rem;color:#fbbf24;font-weight:700;flex-shrink:0;}
+.pf-item-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:4px;}
+.pf-section-head{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--text3);letter-spacing:.2em;text-transform:uppercase;margin:16px 0 8px;}
+.pf-empty{padding:48px 20px;text-align:center;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.8;}
+
 </style>
 </head>
 <body>
@@ -521,6 +546,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
         <button onclick="exportResultPDF()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--violet2);background:rgba(139,92,246,.06);color:var(--violet2);font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;">📄 PDF REPORT</button>
         <button onclick="shareResultCard()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--green);background:rgba(0,220,150,.06);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;">🖼️ SHARE CARD</button>
       </div>
+      <button onclick="addToPortfolio()" style="width:100%;padding:11px;border-radius:11px;border:1px solid #fbbf24;background:rgba(251,191,36,.08);color:#fbbf24;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;cursor:pointer;">💼 ADD TO PORTFOLIO</button>
     </div>
     <!-- TRANSLATE RESULT -->
     <div class="scan-translate-wrap" id="scan-translate-wrap">
@@ -912,6 +938,12 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   </div>
 </div>
 
+<div class="page" id="page-portfolio">
+  <div class="page-title">PORTFOLIO</div>
+  <div class="page-sub">// total value of your collection</div>
+  <div id="portfolio-content" style="padding:0 16px 20px;"></div>
+</div>
+
 <div class="page" id="page-settings">
   <div class="page-title">SYSTEM</div>
   <div class="api-wrap">
@@ -956,6 +988,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   <button class="nav-btn active" onclick="sp('scan',this)"><span class="nav-ico">🔬</span>Scanner</button>
   <button class="nav-btn" onclick="sp('cats',this)"><span class="nav-ico">⬡</span>Domains</button>
   <button class="nav-btn" onclick="sp('coll',this)"><span class="nav-ico">📁</span>Collections</button>
+  <button class="nav-btn" onclick="sp('portfolio',this)"><span class="nav-ico">💼</span>Portfolio</button>
   <button class="nav-btn" onclick="sp('hist',this)"><span class="nav-ico">🕐</span>History</button>
   <button class="nav-btn" onclick="sp('settings',this)"><span class="nav-ico">⚙</span>System</button>
 </nav>
