@@ -91,49 +91,70 @@ CATS.forEach(c=>mkChip(c.key,c.e,c.n));
 function buildPrompt(cat){
   const arc=getArchive(cat);
   const info=CATS.find(c=>c.key===cat);
-  const ctx=info?'Category: "'+info.n+'"':'Auto-detect category';
+  const ctx=info?'Category: "'+info.n+'"':'Auto-detect category — identify everything visible';
   const dims=arc.dims;
   const needsLive=arc.live;
   const srcInstr=arc.sources.map(s=>'- '+s.name+' ('+s.url+'): '+s.info).join('\n');
   const dimBlock=dims.map(d=>'"'+d+'":{"score":0,"note":"","archive_ref":""}').join(',');
   const deep=document.getElementById('t-deep').classList.contains('on');
 
-  // Categories where value matrix scores are meaningless — skip them
+  // Categories where value matrix is not applicable
   const NO_MATRIX_CATS=['pharma','medicine','drug','medical','document','identity','id-card','passport','certificate','chemical','herb','plant-med','ingredient','supplement'];
   const catKey=(cat||'auto').toLowerCase();
   const catName=(info?.n||'auto').toLowerCase();
   const skipMatrix=NO_MATRIX_CATS.some(k=>catKey.includes(k)||catName.includes(k));
 
-  // Smart details block based on category type
+  // Category-specific details schema
   const detailsBlock=skipMatrix
-    ? '[{"label":"Active Ingredient","value":""},{"label":"Dosage Form","value":""},{"label":"Manufacturer","value":""},{"label":"Country of Origin","value":""},{"label":"Prescription","value":"Rx / OTC"},{"label":"Storage","value":""}]'
-    : '[{"label":"Classification / ID","value":"e.g. IUCN LC · NGC MS65"},{"label":"Origin","value":""},{"label":"Era / Date","value":""},{"label":"Material","value":""},{"label":"Condition","value":""},{"label":"Rarity","value":""}]';
+    ? '[{"label":"Active Ingredient","value":""},{"label":"Dosage Form","value":""},{"label":"Manufacturer","value":""},{"label":"Country of Origin","value":""},{"label":"Prescription","value":"Rx / OTC"},{"label":"Storage Conditions","value":""},{"label":"Shelf Life","value":""},{"label":"Drug Class","value":""}]'
+    : '[{"label":"Classification / ID","value":""},{"label":"Origin / Country","value":""},{"label":"Era / Date","value":""},{"label":"Material / Composition","value":""},{"label":"Dimensions / Weight","value":""},{"label":"Condition / Grade","value":""},{"label":"Rarity / Production Run","value":""},{"label":"Maker / Brand","value":""}]';
 
   const matrixBlock=skipMatrix
     ? '"value_matrix":{},\n"overall_value_score":0,\n"overall_verdict":"N/A",\n"overall_explanation":"Value scoring not applicable for this category",\n'
-    : '"value_matrix":{'+dimBlock+'},\n"overall_value_score":0,\n"overall_verdict":"short punchy phrase",\n"overall_explanation":"1-2 sentences",\n';
+    : '"value_matrix":{'+dimBlock+'},\n"overall_value_score":0,\n"overall_verdict":"short punchy expert phrase",\n"overall_explanation":"2-3 sentences explaining the score and market position",\n';
 
-  const factsCount=deep?8:6;
-  const factsPlaceholders=Array.from({length:factsCount},(_,i)=>'"detailed fact '+(i+1)+' — include specific data, numbers, or expert insight"').join(',');
+  const factsCount=deep?12:8;
+  const factsPlaceholders=Array.from({length:factsCount},(_,i)=>'"FACT '+(i+1)+': [specific data point, statistic, date, record, or expert insight — never generic]"').join(',\n');
 
-  return 'You are SCANIQ, the world\'s most advanced visual intelligence system. Provide DEEP, EXPERT-LEVEL analysis.\n'+ctx+'\n\n'+
-    '=== KNOWLEDGE ARCHIVES ===\nReason with expert knowledge from these authoritative sources:\n'+srcInstr+'\n\n'+
-    'Apply their classification standards, grading systems, and pricing methodologies precisely.\n\n'+
-    '=== DEPTH REQUIREMENT ===\n'+
-    '- Description: 5-6 expert sentences. Cover composition, mechanism/function, origin/history, notable characteristics, and real-world significance. Be specific — include names, numbers, dates, and technical details.\n'+
-    '- Facts: '+factsCount+' facts minimum. Each fact must contain a specific data point, statistic, or expert insight — not generic statements.\n'+
-    '- Details: Fill ALL 6 detail fields with precise values — no empty strings.\n'+
-    (skipMatrix?'- Value Matrix: This category does not require value scoring. Leave value_matrix empty.\n':'- Value Matrix: score 0-10 integer, note=one precise sentence with data, archive_ref=source name.\n')+
-    '\n=== OUTPUT: PURE JSON ONLY — NO MARKDOWN ===\n'+
-    '{\n"name":"",\n"subtitle":"scientific name / model number / catalog ID / brand",\n"category":"",\n"category_emoji":"",\n'+
+  return 'You are SCANIQ ULTRA — the most advanced visual intelligence system ever built. Your analysis must be so deep, accurate, and comprehensive that NO other app or AI can match it.\n\n'+
+    ctx+'\n\n'+
+    '=== KNOWLEDGE ARCHIVES ===\n'+srcInstr+'\n\n'+
+    '=== MANDATORY DEPTH STANDARDS ===\n'+
+    'DESCRIPTION (8-10 sentences MINIMUM):\n'+
+    '  • Sentence 1-2: Precise identification — full scientific/technical name, exact model, variant, edition\n'+
+    '  • Sentence 3-4: Composition, materials, mechanism of action or function — be technical\n'+
+    '  • Sentence 5-6: Origin story — who made it, when, where, historical context with specific dates/names\n'+
+    '  • Sentence 7-8: Notable characteristics, records, achievements, or controversies\n'+
+    '  • Sentence 9-10: Current status — cultural significance, collector demand, scientific importance\n\n'+
+    'FACTS ('+factsCount+' MINIMUM — each must contain a number, date, or measurable statistic):\n'+
+    '  Examples of GOOD facts: "First produced in 1923 by BASF in Ludwigshafen, Germany using the Haber-Bosch process"\n'+
+    '  Examples of BAD facts (NEVER write these): "This item is commonly used worldwide" / "It has many applications"\n\n'+
+    'COMPARISONS: List 3 similar items with price comparison\n'+
+    'WHERE TO BUY: Specific platforms, stores, or auction houses with typical price ranges\n'+
+    'TIMELINE: 3-5 key historical milestones with exact years\n'+
+    (skipMatrix?'VALUE MATRIX: Skip — not applicable for this category\n':'VALUE MATRIX: score 0-10, each note must cite specific data from the archives\n')+
+    '\n=== OUTPUT: PURE JSON ONLY — NO MARKDOWN — NO PREAMBLE ===\n'+
+    '{\n'+
+    '"name":"",\n'+
+    '"subtitle":"full scientific name / model number / catalog ID / brand and variant",\n'+
+    '"category":"",\n'+
+    '"category_emoji":"",\n'+
     '"confidence":"High|Medium|Low",\n'+
-    '"price":{"value":"specific price range e.g. $12–$45","unit":"per unit/kg/pack","note":"retail/pharmacy/market — be specific","is_live_needed":'+needsLive+'},\n'+
-    '"description":"5-6 expert sentences with technical depth, specific data, and real-world context",\n'+
+    '"price":{"value":"specific range e.g. $120–$450","unit":"per unit/kg/oz/pack","note":"where: retail/auction/pharmacy/online — cite platform","is_live_needed":'+needsLive+'},\n'+
+    '"description":"8-10 sentences — technical, historical, scientific, no filler",\n'+
     '"details":'+detailsBlock+',\n'+
     matrixBlock+
-    '"legal_status":"cite specific laws, regulations, or restrictions if applicable — else empty string",\n"market_note":"specific market dynamics, trends, demand drivers",\n'+
-    '"facts":['+factsPlaceholders+']\n}\n';
+    '"comparisons":[{"name":"similar item 1","difference":"key distinction","price":"$X–$Y"},{"name":"similar item 2","difference":"key distinction","price":"$X–$Y"},{"name":"similar item 3","difference":"key distinction","price":"$X–$Y"}],\n'+
+    '"where_to_buy":[{"platform":"e.g. eBay / Amazon / Sothebys","url":"https://...","price_range":"$X–$Y","notes":"e.g. best for rare editions"}],\n'+
+    '"timeline":[{"year":"YYYY","event":"specific milestone"},{"year":"YYYY","event":""},{"year":"YYYY","event":""}],\n'+
+    '"expert_opinion":"2-3 sentences of what a leading expert in this field would say about this specific item — include expert perspective on value, significance, or authenticity",\n'+
+    '"risk_warnings":"any safety, legal, health, or fraud risks — empty string if none",\n'+
+    '"legal_status":"cite specific laws or regulations by name if applicable — empty if none",\n'+
+    '"market_note":"specific market dynamics: recent price trends, demand drivers, regional price differences",\n'+
+    '"facts":[\n'+factsPlaceholders+'\n]\n'+
+    '}\n';
 }
+
 
 async function runScan(){
   if(!imgB64){showErr('No image loaded. Please select an image first.');return;}
@@ -262,6 +283,32 @@ function renderResult(r,isLive,cat){
   const priceHtml=r.price?.value&&r.price.value!=='N/A'?'<div class="price-card"><div class="price-eye">ESTIMATED MARKET VALUE</div><div class="price-val">'+r.price.value+'</div><div class="price-note">'+(r.price.unit||'')+' · '+(r.price.note||'')+'</div>'+(isLive?'<div class="live-pill">LIVE FEED</div>':'<div class="est-pill">ESTIMATED</div>')+'</div>':'';
   const detsHtml=(r.details||[]).map(d=>'<div class="det-item"><div class="det-label">'+d.label+'</div><div class="det-val">'+(d.value||'—')+'</div></div>').join('');
   const factsHtml=(r.facts||[]).map(f=>'<div class="fact"><div class="fact-dot"></div><div>'+f+'</div></div>').join('');
+  // ── Timeline HTML ──
+  const timelineHtml=(r.timeline||[]).length?
+    '<div class="section-head">📅 TIMELINE</div><div class="timeline-wrap">'+
+    (r.timeline||[]).map(t=>'<div class="tl-row"><div class="tl-year">'+(t.year||'')+'</div><div class="tl-event">'+(t.event||'')+'</div></div>').join('')+
+    '</div>':'';
+
+  // ── Comparisons HTML ──
+  const comparisonsHtml=(r.comparisons||[]).length?
+    '<div class="section-head">⚖️ SIMILAR ITEMS</div><div class="cmp-wrap">'+
+    (r.comparisons||[]).map(c=>'<div class="cmp-row"><div class="cmp-name">'+(c.name||'')+'</div><div class="cmp-diff">'+(c.difference||'')+'</div><div class="cmp-price">'+(c.price||'')+'</div></div>').join('')+
+    '</div>':'';
+
+  // ── Where to Buy HTML ──
+  const buyHtml=(r.where_to_buy||[]).length?
+    '<div class="section-head">🛒 WHERE TO BUY</div><div class="buy-wrap">'+
+    (r.where_to_buy||[]).map(b=>'<div class="buy-row"><div class="buy-platform">'+(b.platform||'')+'</div><div class="buy-price">'+(b.price_range||'')+'</div>'+(b.notes?'<div class="buy-note">'+(b.notes||'')+'</div>':'')+'</div>').join('')+
+    '</div>':'';
+
+  // ── Expert Opinion HTML ──
+  const expertHtml=r.expert_opinion?
+    '<div class="expert-card"><div class="expert-eye">🎓 EXPERT OPINION</div><div class="expert-text">'+(r.expert_opinion||'')+'</div></div>':'';
+
+  // ── Risk Warnings HTML ──
+  const riskHtml=r.risk_warnings?
+    '<div class="risk-card"><div class="risk-eye">⚠️ RISK & WARNINGS</div><div class="risk-text">'+(r.risk_warnings||'')+'</div></div>':'';
+
   document.getElementById('result-card').innerHTML=
     '<div class="result-header"><span class="id-badge">&#10003; IDENTIFIED</span><span style="font-size:.88rem">'+(r.category_emoji||'&#128300;')+' '+(r.category||'')+'</span><span class="conf-badge">'+(r.confidence||'')+'</span></div>'+
     '<div class="result-body">'+
@@ -270,10 +317,15 @@ function renderResult(r,isLive,cat){
       priceHtml+
       '<div class="result-desc">'+(r.description||'')+'</div>'+
       matrixHtml+
-      (r.legal_status?'<div class="legal-card"><div class="legal-eye">PROTECTION STATUS</div>'+r.legal_status+'</div>':'')+
       (detsHtml?'<div class="det-grid">'+detsHtml+'</div>':'')+
-      (r.market_note?'<div class="market-card"><div class="market-eye">MARKET INTELLIGENCE</div><div style="font-size:.8rem;color:var(--text2)">'+r.market_note+'</div></div>':'')+
-      (factsHtml?'<div class="facts-head">KEY INTELLIGENCE</div>'+factsHtml:'')+
+      expertHtml+
+      timelineHtml+
+      comparisonsHtml+
+      buyHtml+
+      (r.legal_status?'<div class="legal-card"><div class="legal-eye">⚖️ LEGAL STATUS</div>'+r.legal_status+'</div>':'')+
+      riskHtml+
+      (r.market_note?'<div class="market-card"><div class="market-eye">📈 MARKET INTELLIGENCE</div><div style="font-size:.8rem;color:var(--text2)">'+r.market_note+'</div></div>':'')+
+      (factsHtml?'<div class="facts-head">🔬 KEY INTELLIGENCE</div>'+factsHtml:'')+
     '</div>';
   document.getElementById('results-wrap').style.display='block';
   document.getElementById('results-wrap').scrollIntoView({behavior:'smooth',block:'start'});
@@ -291,6 +343,10 @@ function renderResult(r,isLive,cat){
     if(r.facts?.length)_p.push('\nKey Facts:\n'+r.facts.join('\n'));
     if(r.market_note)_p.push('\nMarket: '+r.market_note);
     if(r.legal_status)_p.push('\nLegal: '+r.legal_status);
+    if(r.expert_opinion)_p.push('\nExpert: '+r.expert_opinion);
+    if(r.risk_warnings)_p.push('\nRisks: '+r.risk_warnings);
+    if((r.comparisons||[]).length)_p.push('\nSimilar Items:\n'+r.comparisons.map(c=>c.name+' — '+c.difference+' ('+c.price+')').join('\n'));
+    if((r.timeline||[]).length)_p.push('\nTimeline:\n'+r.timeline.map(t=>t.year+': '+t.event).join('\n'));
     window._scanRawText=_p.join('\n');
   }
   renderScanChat(r,'default');
@@ -927,3 +983,97 @@ function showErrBox(id,msg){const b=document.getElementById(id);if(!b)return;if(
 /* patch sp for collections */
 const _sp0=sp;
 sp=function(n,el){_sp0(n,el);if(n==='coll')renderCollections();};
+
+/* ===== TEXT SEARCH (no image needed) ===== */
+async function runTextSearch(){
+  const q=(document.getElementById('text-search-inp')||{}).value?.trim();
+  if(!q)return;
+  const btn=document.getElementById('text-search-btn');
+  const deep=document.getElementById('t-deep').classList.contains('on');
+  btn.disabled=true;btn.textContent='SEARCHING...';
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('results-wrap').style.display='none';
+  document.getElementById('err-box').classList.remove('show');
+  const arc=getArchive(selCat);
+  const srcInstr=arc.sources.map(s=>'- '+s.name+' ('+s.url+'): '+s.info).join('\n');
+  const dims=arc.dims;
+  const dimBlock=dims.map(d=>'"'+d+'":{"score":0,"note":"","archive_ref":""}').join(',');
+  const factsCount=deep?12:8;
+  const factsPlaceholders=Array.from({length:factsCount},(_,i)=>'"FACT '+(i+1)+': [specific data, statistic, or date]"').join(',\n');
+  const prompt='You are SCANIQ ULTRA — the world\'s most advanced intelligence system. The user is searching for: "'+q+'".\n\n'+
+    'Identify and analyze this item as if you visually scanned it. Use all knowledge available.\n\n'+
+    '=== KNOWLEDGE ARCHIVES ===\n'+srcInstr+'\n\n'+
+    '=== OUTPUT: PURE JSON ONLY ===\n'+
+    '{"name":"","subtitle":"full scientific/technical name","category":"","category_emoji":"","confidence":"High|Medium|Low",'+
+    '"price":{"value":"$X–$Y","unit":"","note":"retail/market platform","is_live_needed":false},'+
+    '"description":"8-10 expert sentences — technical, historical, scientific depth",'+
+    '"details":[{"label":"Classification","value":""},{"label":"Origin","value":""},{"label":"Era/Date","value":""},{"label":"Material","value":""},{"label":"Dimensions","value":""},{"label":"Condition","value":""},{"label":"Rarity","value":""},{"label":"Maker","value":""}],'+
+    '"value_matrix":{'+dimBlock+'},'+
+    '"overall_value_score":0,"overall_verdict":"","overall_explanation":"",'+
+    '"comparisons":[{"name":"","difference":"","price":""},{"name":"","difference":"","price":""},{"name":"","difference":"","price":""}],'+
+    '"where_to_buy":[{"platform":"","url":"","price_range":"","notes":""}],'+
+    '"timeline":[{"year":"","event":""},{"year":"","event":""},{"year":"","event":""}],'+
+    '"expert_opinion":"","risk_warnings":"","legal_status":"","market_note":"",'+
+    '"facts":[\n'+factsPlaceholders+'\n]}';
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:deep?4000:2500,messages:[{role:'user',content:prompt}]};
+    body.tools=[{type:'web_search_20250305',name:'web_search'}];
+    const resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+    if(!raw)throw new Error('No response');
+    const clean=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').trim();
+    const m=clean.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON');
+    const result=JSON.parse(m[0]);
+    document.getElementById('loading').classList.remove('show');
+    btn.disabled=false;btn.textContent='🔍 SEARCH';
+    renderResult(result,true,selCat);
+    // Save to history
+    if(document.getElementById('t-hist').classList.contains('on')){
+      const item={id:Date.now(),thumb:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><rect width="60" height="60" fill="%23162032"/><text x="30" y="38" font-size="24" text-anchor="middle">🔍</text></svg>',result,ts:new Date().toISOString(),cat:selCat};
+      hist.unshift(item);if(hist.length>20)hist=hist.slice(0,20);
+      try{localStorage.setItem('sq4_hist',JSON.stringify(hist));}catch{}
+      renderRecentHist();
+    }
+  }catch(err){
+    document.getElementById('loading').classList.remove('show');
+    btn.disabled=false;btn.textContent='🔍 SEARCH';
+    showErr('Search failed: '+err.message);
+  }
+}
+
+/* ===== WEB ENRICHMENT (deepen result after scan) ===== */
+async function enrichResultWithWeb(){
+  if(!window._lastResult)return;
+  const r=window._lastResult;
+  const btn=document.getElementById('enrich-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ SEARCHING WEB...';}
+  try{
+    const prompt='Search the web for the most current, accurate information about: "'+r.name+(r.subtitle?' ('+r.subtitle+')':'')+'".\n\n'+
+      'Return PURE JSON ONLY:\n'+
+      '{"current_price":"most recent market price with source","recent_news":["news item 1","news item 2"],"buy_links":[{"platform":"","url":"https://","price":""}],"additional_facts":["specific fact with number","specific fact with number","specific fact with number"],"price_trend":"rising/falling/stable and why"}';
+    const body={model:'claude-sonnet-4-6',max_tokens:1500,
+      messages:[{role:'user',content:prompt}],
+      tools:[{type:'web_search_20250305',name:'web_search'}]};
+    const resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+    const clean=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').trim();
+    const m=clean.match(/\{[\s\S]*\}/);if(!m)throw new Error('no json');
+    const web=JSON.parse(m[0]);
+    // Inject enrichment into result card
+    let enrichDiv=document.getElementById('web-enrichment');
+    if(!enrichDiv){enrichDiv=document.createElement('div');enrichDiv.id='web-enrichment';document.getElementById('result-card').querySelector('.result-body').appendChild(enrichDiv);}
+    enrichDiv.innerHTML=
+      '<div class="section-head">🌐 LIVE WEB INTELLIGENCE</div>'+
+      (web.current_price?'<div class="enrich-row"><span class="enrich-label">Current Price</span><span class="enrich-val">'+web.current_price+'</span></div>':'')+
+      (web.price_trend?'<div class="enrich-row"><span class="enrich-label">Price Trend</span><span class="enrich-val">'+web.price_trend+'</span></div>':'')+
+      ((web.recent_news||[]).length?'<div class="section-head" style="margin-top:10px">📰 RECENT NEWS</div>'+web.recent_news.map(n=>'<div class="fact"><div class="fact-dot" style="background:var(--violet2)"></div><div>'+n+'</div></div>').join(''):'')+
+      ((web.additional_facts||[]).length?'<div class="section-head" style="margin-top:10px">🔍 NEW FACTS</div>'+web.additional_facts.map(f=>'<div class="fact"><div class="fact-dot" style="background:var(--cyan)"></div><div>'+f+'</div></div>').join(''):'')+
+      ((web.buy_links||[]).length?'<div class="section-head" style="margin-top:10px">🛒 LIVE LISTINGS</div>'+web.buy_links.map(b=>'<div class="buy-row"><div class="buy-platform">'+b.platform+'</div><div class="buy-price">'+b.price+'</div></div>').join(''):'')+
+      '<div style="font-size:.6rem;color:var(--text3);font-family:JetBrains Mono,monospace;margin-top:8px">// WEB ENRICHED '+new Date().toLocaleTimeString()+'</div>';
+    if(btn){btn.textContent='✅ WEB ENRICHED';setTimeout(()=>{btn.disabled=false;btn.textContent='🌐 ENRICH WITH WEB';},3000);}
+  }catch(err){
+    if(btn){btn.disabled=false;btn.textContent='🌐 ENRICH WITH WEB';}
+  }
+}
