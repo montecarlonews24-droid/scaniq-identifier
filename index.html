@@ -321,6 +321,12 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .fm-slot-label{font-size:.65rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:6px;}
 .fm-slot-ico{font-size:1.8rem;}
 .fm-slot.loaded{border-style:solid;border-color:var(--violet2);}
+/* ── HIST SEARCH ── */
+#hist-search:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,229,255,.08);}
+/* ── RESULT ACTION BAR ── */
+#result-action-bar{display:none;}
+#result-action-bar.show{display:flex;}
+
 /* ── QR SCANNER ── */
 .qr-wrap{padding:14px 20px;display:none;}
 .qr-wrap.show{display:block;}
@@ -425,6 +431,11 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   </div>
   <div class="err-box" id="err-box"></div>
   <div id="results-wrap"><div class="result-card" id="result-card"></div>
+    <!-- RESULT ACTION BAR -->
+    <div id="result-action-bar" style="display:none;padding:0 16px 4px;display:flex;gap:8px;">
+      <button onclick="saveToCollection()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--cyan);background:rgba(0,229,255,.06);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;cursor:pointer;">📁 SAVE TO COLLECTION</button>
+      <button onclick="shareResult()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--rim);background:var(--card);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;cursor:pointer;">🔗 SHARE</button>
+    </div>
     <!-- TRANSLATE RESULT -->
     <div class="scan-translate-wrap" id="scan-translate-wrap">
       <div class="scan-translate-head">TRANSLATE RESULT</div>
@@ -674,6 +685,12 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 <div class="page" id="page-hist">
   <div class="page-title">HISTORY</div>
   <div class="page-sub">// intelligence archive</div>
+  <div style="padding:0 16px 10px;">
+    <div style="position:relative;">
+      <input id="hist-search" type="text" placeholder="🔍  Search scans..." oninput="filterHist(this.value)"
+        style="width:100%;background:var(--card);border:1px solid var(--rim);border-radius:12px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.84rem;outline:none;box-sizing:border-box;">
+    </div>
+  </div>
   <div style="padding:0 16px;" id="full-hist"></div>
 </div>
 
