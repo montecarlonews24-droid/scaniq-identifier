@@ -983,7 +983,7 @@ function showErrBox(id,msg){const b=document.getElementById(id);if(!b)return;if(
 
 /* patch sp for collections */
 const _sp0=sp;
-sp=function(n,el){_sp0(n,el);if(n==='coll')renderCollections();};
+sp=function(n,el){_sp0(n,el);if(n==='coll')renderCollections();if(n==='portfolio')renderPortfolio();};
 
 /* ===== TEXT SEARCH (no image needed) ===== */
 async function runTextSearch(){
@@ -1643,4 +1643,111 @@ function wrapText(ctx,text,maxW,fontSize){
   });
   if(cur)lines.push(cur);
   return lines;
+}
+
+/* ══════════════════════════════════════════════════
+   PORTFOLIO TRACKER
+══════════════════════════════════════════════════ */
+let portfolio=JSON.parse(localStorage.getItem('sq4_portfolio')||'[]');
+function savePortfolio(){try{localStorage.setItem('sq4_portfolio',JSON.stringify(portfolio));}catch{}}
+
+// Parse a price string like "$120–$450" or "$3,200" → average numeric value
+function parsePriceValue(priceStr){
+  if(!priceStr||priceStr==='N/A')return 0;
+  const nums=(priceStr.match(/[\d,]+(?:\.\d+)?/g)||[]).map(n=>parseFloat(n.replace(/,/g,''))).filter(n=>!isNaN(n));
+  if(!nums.length)return 0;
+  if(nums.length>=2)return (nums[0]+nums[1])/2; // average of range
+  return nums[0];
+}
+
+function addToPortfolio(){
+  if(!window._lastResult){alert('No result to add.');return;}
+  const r=window._lastResult;
+  const priceVal=parsePriceValue(r.price?.value);
+  if(priceVal<=0){
+    const manual=prompt('No price detected. Enter estimated value in USD (numbers only):');
+    const mv=parseFloat((manual||'').replace(/[^\d.]/g,''));
+    if(isNaN(mv)||mv<=0)return;
+    _doAddPortfolio(r,mv);
+  }else{
+    _doAddPortfolio(r,priceVal);
+  }
+}
+
+function _doAddPortfolio(r,value){
+  const thumb=document.getElementById('preview-img')?.src||'';
+  const entry={
+    id:Date.now(),
+    name:r.name||'Unknown',
+    category:r.category||'Other',
+    emoji:r.category_emoji||'📦',
+    value:value,
+    priceStr:r.price?.value||('$'+value),
+    thumb:thumb.startsWith('data:')?thumb:'',
+    ts:new Date().toISOString()
+  };
+  portfolio.unshift(entry);
+  savePortfolio();
+  const btn=event?.target;
+  if(btn){btn.textContent='✅ ADDED — $'+value.toLocaleString();setTimeout(()=>{btn.textContent='💼 ADD TO PORTFOLIO';},2500);}
+}
+
+function removeFromPortfolio(id){
+  portfolio=portfolio.filter(p=>p.id!==id);
+  savePortfolio();renderPortfolio();
+}
+
+function renderPortfolio(){
+  const c=document.getElementById('portfolio-content');
+  if(!c)return;
+  if(!portfolio.length){
+    c.innerHTML='<div class="pf-empty">💼 YOUR PORTFOLIO IS EMPTY<br><br>Scan any valuable item, then tap<br>"💼 ADD TO PORTFOLIO" to track its value here.</div>';
+    return;
+  }
+  const total=portfolio.reduce((s,p)=>s+(p.value||0),0);
+  // Group by category
+  const cats={};
+  portfolio.forEach(p=>{
+    const k=p.category||'Other';
+    if(!cats[k])cats[k]={name:k,emoji:p.emoji,value:0,count:0};
+    cats[k].value+=p.value||0;cats[k].count++;
+  });
+  const catArr=Object.values(cats).sort((a,b)=>b.value-a.value);
+  const top=[...portfolio].sort((a,b)=>b.value-a.value)[0];
+  const fmt=v=>'$'+Math.round(v).toLocaleString();
+
+  let hero='<div class="pf-hero"><div class="pf-total-lbl">TOTAL PORTFOLIO VALUE</div><div class="pf-total">'+fmt(total)+'</div>'+
+    '<div class="pf-meta">'+portfolio.length+' items · '+catArr.length+' categories</div></div>';
+
+  // Category breakdown
+  let catHtml='<div class="pf-section-head">📊 By Category</div>';
+  catArr.forEach(cat=>{
+    const pct=total>0?Math.round(cat.value/total*100):0;
+    catHtml+='<div class="pf-cat-row"><div class="pf-cat-ico">'+(cat.emoji||'📦')+'</div>'+
+      '<div class="pf-cat-info"><div class="pf-cat-name">'+cat.name+'</div>'+
+      '<div class="pf-cat-bar"><div class="pf-cat-fill" style="width:'+pct+'%"></div></div></div>'+
+      '<div class="pf-cat-val"><div class="pf-cat-amount">'+fmt(cat.value)+'</div><div class="pf-cat-pct">'+pct+'% · '+cat.count+'</div></div></div>';
+  });
+
+  // Top item
+  let topHtml='';
+  if(top){
+    topHtml='<div class="pf-section-head">🏆 Top Item</div>'+
+      '<div class="pf-item" style="border-color:rgba(251,191,36,.3)">'+
+      (top.thumb?'<img src="'+top.thumb+'">':'<div style="width:48px;height:48px;border-radius:9px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.4rem">'+(top.emoji||'📦')+'</div>')+
+      '<div class="pf-item-info"><div class="pf-item-name">'+top.name+'</div><div class="pf-item-cat">'+top.category+'</div></div>'+
+      '<div class="pf-item-val">'+fmt(top.value)+'</div></div>';
+  }
+
+  // All items
+  let itemsHtml='<div class="pf-section-head">💼 All Holdings</div>';
+  portfolio.forEach(p=>{
+    itemsHtml+='<div class="pf-item">'+
+      (p.thumb?'<img src="'+p.thumb+'">':'<div style="width:48px;height:48px;border-radius:9px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.4rem">'+(p.emoji||'📦')+'</div>')+
+      '<div class="pf-item-info"><div class="pf-item-name">'+p.name+'</div><div class="pf-item-cat">'+p.emoji+' '+p.category+'</div></div>'+
+      '<div class="pf-item-val">'+fmt(p.value)+'</div>'+
+      '<button class="pf-item-del" onclick="removeFromPortfolio('+p.id+')">✕</button></div>';
+  });
+
+  c.innerHTML=hero+catHtml+topHtml+itemsHtml;
 }
