@@ -364,10 +364,14 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .face-score-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--violet),var(--cyan));}
 
 /* ══ TEXT SEARCH BAR ══ */
-.text-search-wrap{padding:0 16px 12px;display:flex;gap:8px;}
-.text-search-wrap input{flex:1;min-width:0;background:var(--card);border:1px solid var(--rim);border-radius:12px;padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;}
+.text-search-wrap{padding:0 14px 12px;display:flex;gap:6px;width:100%;max-width:100%;box-sizing:border-box;align-items:stretch;overflow:hidden;}
+.text-search-wrap input{flex:1 1 0;min-width:0;width:100%;background:var(--card);border:1px solid var(--rim);border-radius:12px;padding:11px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;outline:none;box-sizing:border-box;}
 .text-search-wrap input:focus{border-color:var(--cyan);}
-.text-search-wrap button{flex-shrink:0;background:linear-gradient(135deg,rgba(0,229,255,.12),rgba(0,229,255,.05));border:1px solid var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-size:.66rem;font-weight:700;letter-spacing:.05em;padding:11px 12px;border-radius:12px;cursor:pointer;white-space:nowrap;}
+.text-search-wrap button{flex-shrink:0;background:linear-gradient(135deg,rgba(0,229,255,.12),rgba(0,229,255,.05));border:1px solid var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-size:.64rem;font-weight:700;letter-spacing:.04em;padding:11px 12px;border-radius:12px;cursor:pointer;white-space:nowrap;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:4px;}
+@media (max-width:400px){
+  .text-search-wrap button .s-txt{display:none;}
+  .text-search-wrap button{padding:11px 14px;font-size:1rem;letter-spacing:0;}
+}
 
 /* ══ SECTION HEADS (Timeline, Comparisons, etc.) ══ */
 .section-head{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;padding:14px 0 6px;border-top:1px solid var(--rim2);margin-top:10px;}
@@ -536,7 +540,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   <!-- TEXT SEARCH -->
   <div class="text-search-wrap">
     <input id="text-search-inp" type="text" placeholder="🔍  Or type item name to search without photo..." onkeydown="if(event.key==='Enter')runTextSearch()">
-    <button id="text-search-btn" onclick="runTextSearch()">🔍 SEARCH</button>
+    <button id="text-search-btn" onclick="runTextSearch()">🔍<span class="s-txt">&nbsp;SEARCH</span></button>
   </div>
   <div class="cat-section">
     <div class="sec-label">Category Focus</div>
