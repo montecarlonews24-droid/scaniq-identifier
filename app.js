@@ -98,13 +98,11 @@ function buildPrompt(cat){
   const dimBlock=dims.map(d=>'"'+d+'":{"score":0,"note":"","archive_ref":""}').join(',');
   const deep=document.getElementById('t-deep').classList.contains('on');
 
-  // Categories where value matrix is not applicable
   const NO_MATRIX_CATS=['pharma','medicine','drug','medical','document','identity','id-card','passport','certificate','chemical','herb','plant-med','ingredient','supplement'];
   const catKey=(cat||'auto').toLowerCase();
   const catName=(info?.n||'auto').toLowerCase();
   const skipMatrix=NO_MATRIX_CATS.some(k=>catKey.includes(k)||catName.includes(k));
 
-  // Category-specific details schema
   const detailsBlock=skipMatrix
     ? '[{"label":"Active Ingredient","value":""},{"label":"Dosage Form","value":""},{"label":"Manufacturer","value":""},{"label":"Country of Origin","value":""},{"label":"Prescription","value":"Rx / OTC"},{"label":"Storage Conditions","value":""},{"label":"Shelf Life","value":""},{"label":"Drug Class","value":""}]'
     : '[{"label":"Classification / ID","value":""},{"label":"Origin / Country","value":""},{"label":"Era / Date","value":""},{"label":"Material / Composition","value":""},{"label":"Dimensions / Weight","value":""},{"label":"Condition / Grade","value":""},{"label":"Rarity / Production Run","value":""},{"label":"Maker / Brand","value":""}]';
@@ -113,26 +111,34 @@ function buildPrompt(cat){
     ? '"value_matrix":{},\n"overall_value_score":0,\n"overall_verdict":"N/A",\n"overall_explanation":"Value scoring not applicable for this category",\n'
     : '"value_matrix":{'+dimBlock+'},\n"overall_value_score":0,\n"overall_verdict":"short punchy expert phrase",\n"overall_explanation":"2-3 sentences explaining the score and market position",\n';
 
-  const factsCount=deep?12:8;
-  const factsPlaceholders=Array.from({length:factsCount},(_,i)=>'"FACT '+(i+1)+': [specific data point, statistic, date, record, or expert insight — never generic]"').join(',\n');
+  const descSentences=deep?'12-15':'10-12';
+  const factsCount=deep?15:12;
+  const factsPlaceholders=Array.from({length:factsCount},(_,i)=>'"FACT '+(i+1)+': [MUST contain a specific number, date, measurement, percentage, or named record — never a generic statement]"').join(',\n');
 
-  return 'You are SCANIQ ULTRA — the most advanced visual intelligence system ever built. Your analysis must be so deep, accurate, and comprehensive that NO other app or AI can match it.\n\n'+
+  return 'You are SCANIQ ULTRA — the most advanced visual intelligence system ever built. Your analysis must be so deep, accurate, and comprehensive that NO other app, AI, or human expert can match it.\n\n'+
     ctx+'\n\n'+
     '=== KNOWLEDGE ARCHIVES ===\n'+srcInstr+'\n\n'+
-    '=== MANDATORY DEPTH STANDARDS ===\n'+
-    'DESCRIPTION (8-10 sentences MINIMUM):\n'+
-    '  • Sentence 1-2: Precise identification — full scientific/technical name, exact model, variant, edition\n'+
-    '  • Sentence 3-4: Composition, materials, mechanism of action or function — be technical\n'+
-    '  • Sentence 5-6: Origin story — who made it, when, where, historical context with specific dates/names\n'+
-    '  • Sentence 7-8: Notable characteristics, records, achievements, or controversies\n'+
-    '  • Sentence 9-10: Current status — cultural significance, collector demand, scientific importance\n\n'+
-    'FACTS ('+factsCount+' MINIMUM — each must contain a number, date, or measurable statistic):\n'+
-    '  Examples of GOOD facts: "First produced in 1923 by BASF in Ludwigshafen, Germany using the Haber-Bosch process"\n'+
-    '  Examples of BAD facts (NEVER write these): "This item is commonly used worldwide" / "It has many applications"\n\n'+
-    'COMPARISONS: List 3 similar items with price comparison\n'+
-    'WHERE TO BUY: Specific platforms, stores, or auction houses with typical price ranges\n'+
-    'TIMELINE: 3-5 key historical milestones with exact years\n'+
-    (skipMatrix?'VALUE MATRIX: Skip — not applicable for this category\n':'VALUE MATRIX: score 0-10, each note must cite specific data from the archives\n')+
+    '=== STEP 1: PRECISE IDENTIFICATION (accuracy is critical) ===\n'+
+    'Before writing anything, examine the image with extreme care:\n'+
+    '  • Study every visible detail: shape, markings, text, logos, patterns, wear, color, proportions, materials\n'+
+    '  • Look for identifying marks: serial numbers, hallmarks, signatures, mint marks, model numbers, date codes\n'+
+    '  • Cross-check these details against the knowledge archives before committing to an identification\n'+
+    '  • If multiple candidates exist, pick the one matching the MOST visible evidence, and note uncertainty in confidence\n'+
+    '  • NEVER guess wildly — if you cannot identify precisely, say so in confidence:"Low" and explain what would help\n\n'+
+    '=== STEP 2: MANDATORY DEPTH ('+descSentences+' sentence description) ===\n'+
+    '  • Sentences 1-3: Exact identification — full name, variant, edition, model, maker, year\n'+
+    '  • Sentences 4-6: Composition, materials, construction, mechanism, or function — deeply technical\n'+
+    '  • Sentences 7-9: Complete origin story — inventor/maker, exact dates, place, historical context\n'+
+    '  • Sentences 10-12: Records, achievements, notable examples, controversies, rarity factors\n'+
+    (deep?'  • Sentences 13-15: Scientific/cultural significance, current market position, future outlook\n':'')+
+    '\n=== STEP 3: FACTS ('+factsCount+' facts, each with hard data) ===\n'+
+    '  GOOD: "The 1933 Double Eagle sold for $18.9 million at Sotheby\'s in June 2021, a world record for a coin"\n'+
+    '  BAD (forbidden): "This is a valuable and rare item sought by collectors"\n\n'+
+    '=== STEP 4: NEW DEEP SECTIONS ===\n'+
+    '  • how_to_identify: 3-4 concrete tests a person can do to verify authenticity or identify this precisely\n'+
+    '  • technical_specs: 4-6 exact technical measurements/specifications (dimensions, weight, purity, materials, etc.)\n'+
+    '  • regional_variations: how this item differs by region/country/era, with price/value differences\n\n'+
+    (skipMatrix?'VALUE MATRIX: Skip — not applicable\n':'VALUE MATRIX: score 0-10, each note cites specific archive data\n')+
     '\n=== OUTPUT: PURE JSON ONLY — NO MARKDOWN — NO PREAMBLE ===\n'+
     '{\n'+
     '"name":"",\n'+
@@ -140,17 +146,21 @@ function buildPrompt(cat){
     '"category":"",\n'+
     '"category_emoji":"",\n'+
     '"confidence":"High|Medium|Low",\n'+
-    '"price":{"value":"specific range e.g. $120–$450","unit":"per unit/kg/oz/pack","note":"where: retail/auction/pharmacy/online — cite platform","is_live_needed":'+needsLive+'},\n'+
-    '"description":"8-10 sentences — technical, historical, scientific, no filler",\n'+
+    '"identification_notes":"what visible evidence led to this identification — cite specific details you observed",\n'+
+    '"price":{"value":"specific range e.g. $120-$450","unit":"per unit/kg/oz/pack","note":"where: retail/auction/pharmacy/online — cite platform","is_live_needed":'+needsLive+'},\n'+
+    '"description":"'+descSentences+' sentences — technical, historical, scientific, zero filler",\n'+
     '"details":'+detailsBlock+',\n'+
     matrixBlock+
-    '"comparisons":[{"name":"similar item 1","difference":"key distinction","price":"$X–$Y"},{"name":"similar item 2","difference":"key distinction","price":"$X–$Y"},{"name":"similar item 3","difference":"key distinction","price":"$X–$Y"}],\n'+
-    '"where_to_buy":[{"platform":"e.g. eBay / Amazon / Sothebys","url":"https://...","price_range":"$X–$Y","notes":"e.g. best for rare editions"}],\n'+
+    '"technical_specs":[{"spec":"e.g. Diameter","value":"e.g. 34.1mm"},{"spec":"e.g. Weight","value":"e.g. 33.4g"},{"spec":"","value":""},{"spec":"","value":""}],\n'+
+    '"how_to_identify":["concrete verification test 1","test 2","test 3"],\n'+
+    '"regional_variations":"how this differs by region/country/era with value differences — empty if not applicable",\n'+
+    '"comparisons":[{"name":"similar item 1","difference":"key distinction","price":"$X-$Y"},{"name":"similar item 2","difference":"key distinction","price":"$X-$Y"},{"name":"similar item 3","difference":"key distinction","price":"$X-$Y"}],\n'+
+    '"where_to_buy":[{"platform":"e.g. eBay / Sothebys","url":"https://...","price_range":"$X-$Y","notes":"best for X"}],\n'+
     '"timeline":[{"year":"YYYY","event":"specific milestone"},{"year":"YYYY","event":""},{"year":"YYYY","event":""}],\n'+
-    '"expert_opinion":"2-3 sentences of what a leading expert in this field would say about this specific item — include expert perspective on value, significance, or authenticity",\n'+
-    '"risk_warnings":"any safety, legal, health, or fraud risks — empty string if none",\n'+
-    '"legal_status":"cite specific laws or regulations by name if applicable — empty if none",\n'+
-    '"market_note":"specific market dynamics: recent price trends, demand drivers, regional price differences",\n'+
+    '"expert_opinion":"2-3 sentences of what a leading world expert would say about THIS specific item — value, significance, authenticity",\n'+
+    '"risk_warnings":"safety, legal, health, or fraud risks — empty string if none",\n'+
+    '"legal_status":"cite specific laws or regulations by name — empty if none",\n'+
+    '"market_note":"specific market dynamics: recent price trends with dates, demand drivers, regional differences",\n'+
     '"facts":[\n'+factsPlaceholders+'\n]\n'+
     '}\n';
 }
@@ -173,7 +183,7 @@ async function runScan(){
   const it=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('lt').textContent=msgs[mi][0];document.getElementById('ls').textContent=msgs[mi][1];},2000);
   const needsLive=arc.live&&document.getElementById('t-live').classList.contains('on');
   try{
-    const body={model:'claude-sonnet-4-6',max_tokens:deep?4000:2000,messages:[{role:'user',content:[
+    const body={model:'claude-sonnet-4-6',max_tokens:deep?5000:3500,messages:[{role:'user',content:[
       {type:'image',source:{type:'base64',media_type:scanMime,data:scanB64}},
       {type:'text',text:buildPrompt(selCat)}
     ]}]};
@@ -309,18 +319,42 @@ function renderResult(r,isLive,cat){
   const riskHtml=r.risk_warnings?
     '<div class="risk-card"><div class="risk-eye">⚠️ RISK & WARNINGS</div><div class="risk-text">'+(r.risk_warnings||'')+'</div></div>':'';
 
+  // ── Identification Notes HTML ──
+  const idNotesHtml=r.identification_notes?
+    '<div class="idnote-card"><div class="idnote-eye">🎯 WHY THIS IDENTIFICATION</div><div class="idnote-text">'+(r.identification_notes||'')+'</div></div>':'';
+
+  // ── Technical Specs HTML ──
+  const specsHtml=(r.technical_specs||[]).filter(s=>s.spec&&s.value).length?
+    '<div class="section-head">📐 TECHNICAL SPECS</div><div class="specs-grid">'+
+    (r.technical_specs||[]).filter(s=>s.spec&&s.value).map(s=>'<div class="spec-item"><div class="spec-label">'+s.spec+'</div><div class="spec-val">'+s.value+'</div></div>').join('')+
+    '</div>':'';
+
+  // ── How to Identify HTML ──
+  const identifyHtml=(r.how_to_identify||[]).filter(x=>x).length?
+    '<div class="section-head">🔍 HOW TO IDENTIFY / VERIFY</div><div class="identify-wrap">'+
+    (r.how_to_identify||[]).filter(x=>x).map((h,i)=>'<div class="identify-row"><div class="identify-num">'+(i+1)+'</div><div class="identify-text">'+h+'</div></div>').join('')+
+    '</div>':'';
+
+  // ── Regional Variations HTML ──
+  const regionalHtml=r.regional_variations?
+    '<div class="regional-card"><div class="regional-eye">🌍 REGIONAL VARIATIONS</div><div class="regional-text">'+(r.regional_variations||'')+'</div></div>':'';
+
   document.getElementById('result-card').innerHTML=
     '<div class="result-header"><span class="id-badge">&#10003; IDENTIFIED</span><span style="font-size:.88rem">'+(r.category_emoji||'&#128300;')+' '+(r.category||'')+'</span><span class="conf-badge">'+(r.confidence||'')+'</span></div>'+
     '<div class="result-body">'+
       '<div class="result-name">'+(r.name||'Unknown')+'</div>'+
       '<div class="result-sub">'+(r.subtitle||'')+'</div>'+
       priceHtml+
+      idNotesHtml+
       '<div class="result-desc">'+(r.description||'')+'</div>'+
       matrixHtml+
       (detsHtml?'<div class="det-grid">'+detsHtml+'</div>':'')+
+      specsHtml+
+      identifyHtml+
       expertHtml+
       timelineHtml+
       comparisonsHtml+
+      regionalHtml+
       buyHtml+
       (r.legal_status?'<div class="legal-card"><div class="legal-eye">⚖️ LEGAL STATUS</div>'+r.legal_status+'</div>':'')+
       riskHtml+
@@ -344,6 +378,9 @@ function renderResult(r,isLive,cat){
     if(r.market_note)_p.push('\nMarket: '+r.market_note);
     if(r.legal_status)_p.push('\nLegal: '+r.legal_status);
     if(r.expert_opinion)_p.push('\nExpert: '+r.expert_opinion);
+    if((r.how_to_identify||[]).length)_p.push('\nHow to Identify:\n'+r.how_to_identify.join('\n'));
+    if(r.regional_variations)_p.push('\nRegional: '+r.regional_variations);
+    if((r.technical_specs||[]).filter(s=>s.spec).length)_p.push('\nSpecs:\n'+r.technical_specs.filter(s=>s.spec).map(s=>s.spec+': '+s.value).join('\n'));
     if(r.risk_warnings)_p.push('\nRisks: '+r.risk_warnings);
     if((r.comparisons||[]).length)_p.push('\nSimilar Items:\n'+r.comparisons.map(c=>c.name+' — '+c.difference+' ('+c.price+')').join('\n'));
     if((r.timeline||[]).length)_p.push('\nTimeline:\n'+r.timeline.map(t=>t.year+': '+t.event).join('\n'));
@@ -1017,7 +1054,7 @@ async function runTextSearch(){
     '"expert_opinion":"","risk_warnings":"","legal_status":"","market_note":"",'+
     '"facts":[\n'+factsPlaceholders+'\n]}';
   try{
-    const body={model:'claude-sonnet-4-6',max_tokens:deep?4000:2500,messages:[{role:'user',content:prompt}]};
+    const body={model:'claude-sonnet-4-6',max_tokens:deep?5000:3500,messages:[{role:'user',content:prompt}]};
     body.tools=[{type:'web_search_20250305',name:'web_search'}];
     const resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await resp.json();
