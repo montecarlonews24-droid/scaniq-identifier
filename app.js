@@ -381,7 +381,8 @@ renderRecentHist();
 
 /* ===== MODE SWITCHING ===== */
 function switchMode(m){
-  ['scan','face','facematch','auth','nutri','ocr','qr'].forEach(id=>{
+  if(m!=='ar')stopAR();
+  ['scan','face','facematch','auth','nutri','ocr','qr','ar'].forEach(id=>{
     const el=document.getElementById('mode-'+id);if(el)el.style.display=(id===m)?'block':'none';
     const t=document.getElementById('tab-'+id);if(t)t.classList.toggle('active',id===m);
   });
@@ -1076,4 +1077,199 @@ async function enrichResultWithWeb(){
   }catch(err){
     if(btn){btn.disabled=false;btn.textContent='🌐 ENRICH WITH WEB';}
   }
+}
+
+
+/* ══════════════════════════════════════════════════
+   AR LIVE CAMERA ENGINE
+══════════════════════════════════════════════════ */
+let _arStream=null, _arAutoTimer=null, _arRunning=false, _arAnalyzing=false, _arLastResult=null;
+
+async function startAR(){
+  const btn=document.getElementById('ar-start-btn');
+  const snapBtn=document.getElementById('ar-snap-btn');
+  const autoBtn=document.getElementById('ar-auto-btn');
+  const video=document.getElementById('ar-video');
+  const status=document.getElementById('ar-status');
+  try{
+    if(_arStream){stopAR();return;}
+    btn.textContent='⏳ STARTING...';btn.disabled=true;
+    _arStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:960}},audio:false
+    });
+    video.srcObject=_arStream;
+    await new Promise(r=>{video.onloadedmetadata=r;});
+    _arRunning=true;
+    btn.textContent='⏹ STOP CAMERA';btn.disabled=false;btn.style.borderColor='var(--red)';btn.style.color='var(--red)';
+    snapBtn.disabled=false;autoBtn.disabled=false;
+    status.textContent='CAMERA ACTIVE — SNAP TO ANALYZE';
+    status.style.color='var(--cyan)';
+    showErrBox('err-ar','');
+  }catch(e){
+    btn.textContent='▶ START CAMERA';btn.disabled=false;
+    showErrBox('err-ar','Camera access denied. Please allow camera permission.');
+  }
+}
+
+function stopAR(){
+  if(_arStream){_arStream.getTracks().forEach(t=>t.stop());_arStream=null;}
+  if(_arAutoTimer){clearInterval(_arAutoTimer);_arAutoTimer=null;}
+  _arRunning=false;_arAnalyzing=false;
+  const btn=document.getElementById('ar-start-btn');
+  const snapBtn=document.getElementById('ar-snap-btn');
+  const autoBtn=document.getElementById('ar-auto-btn');
+  const status=document.getElementById('ar-status');
+  if(btn){btn.textContent='▶ START CAMERA';btn.disabled=false;btn.style.borderColor='';btn.style.color='';}
+  if(snapBtn)snapBtn.disabled=true;
+  if(autoBtn){autoBtn.disabled=true;autoBtn.classList.remove('active');}
+  if(status){status.textContent='CAMERA READY — TAP SCAN';status.style.color='';}
+  const sl=document.getElementById('ar-scanline');if(sl)sl.classList.remove('active');
+  const counter=document.getElementById('ar-counter-label');if(counter)counter.textContent='';
+}
+
+function captureARframe(){
+  const video=document.getElementById('ar-video');
+  const canvas=document.getElementById('ar-canvas');
+  canvas.width=video.videoWidth||640;canvas.height=video.videoHeight||480;
+  canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+  return canvas.toDataURL('image/jpeg',0.82).split(',')[1];
+}
+
+async function arSnap(){
+  if(!_arRunning||_arAnalyzing)return;
+  _arAnalyzing=true;
+  const status=document.getElementById('ar-status');
+  const sl=document.getElementById('ar-scanline');
+  const overlay=document.getElementById('ar-overlay');
+  const snapBtn=document.getElementById('ar-snap-btn');
+  snapBtn.disabled=true;snapBtn.textContent='⏳ ANALYZING...';
+  if(sl)sl.classList.add('active');
+  if(status){status.textContent='AI ANALYZING...';status.style.color='var(--violet2)';}
+
+  try{
+    const frameB64=captureARframe();
+    const arc=getArchive(selCat);
+    const dims=arc.dims;
+    const dimBlock=dims.map(d=>'"'+d+'":{"score":0,"note":"","archive_ref":""}').join(',');
+    // Compact prompt for speed
+    const prompt='You are SCANIQ AR. Analyze this camera frame instantly. Return PURE JSON ONLY:\n'+
+
+      '{"name":"","subtitle":"","category":"","category_emoji":"","confidence":"High|Medium|Low",'+
+      '"price":{"value":"","unit":"","note":"","is_live_needed":false},'+
+      '"description":"4-6 expert sentences with technical depth",'+
+      '"details":[{"label":"Classification","value":""},{"label":"Origin","value":""},{"label":"Material","value":""},{"label":"Rarity","value":""}],'+
+      '"value_matrix":{'+dimBlock+'},'+
+      '"overall_value_score":0,"overall_verdict":"","overall_explanation":"",'+
+      '"comparisons":[{"name":"","difference":"","price":""}],'+
+      '"where_to_buy":[{"platform":"","url":"","price_range":"","notes":""}],'+
+      '"timeline":[{"year":"","event":""}],'+
+      '"expert_opinion":"","risk_warnings":"","legal_status":"","market_note":"",'+
+      '"facts":["specific fact 1 with number","specific fact 2","specific fact 3","specific fact 4","specific fact 5","specific fact 6"]}';
+
+    const body={model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:'image/jpeg',data:frameB64}},
+      {type:'text',text:prompt}
+    ]}]};
+    const resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+    const clean=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').trim();
+    const m=clean.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON');
+    const r=JSON.parse(m[0]);
+    _arLastResult=r;
+
+    // Show mini overlay on viewfinder
+    if(overlay){
+      overlay.style.display='block';
+      document.getElementById('ar-overlay-name').textContent=r.name||'Unknown';
+      document.getElementById('ar-overlay-conf').textContent=(r.confidence||'')+'  '+( r.category_emoji||'');
+      document.getElementById('ar-overlay-cat').textContent=r.category||'';
+      document.getElementById('ar-overlay-price').textContent=r.price?.value&&r.price.value!=='N/A'?'💰 '+r.price.value:'';
+      document.getElementById('ar-overlay-desc').textContent=(r.description||'').substring(0,120)+'...';
+    }
+
+    // Show full result below
+    const wrap=document.getElementById('ar-result-wrap');
+    const card=document.getElementById('ar-result-card');
+    if(wrap&&card){
+      // Reuse renderResult logic but into ar-result-card
+      const detsHtml=(r.details||[]).map(d=>'<div class="det-item"><div class="det-label">'+d.label+'</div><div class="det-val">'+(d.value||'—')+'</div></div>').join('');
+      const factsHtml=(r.facts||[]).map(f=>'<div class="fact"><div class="fact-dot"></div><div>'+f+'</div></div>').join('');
+      const timelineHtml=(r.timeline||[]).filter(t=>t.year&&t.event).length?
+        '<div class="section-head">📅 TIMELINE</div><div class="timeline-wrap">'+(r.timeline||[]).map(t=>'<div class="tl-row"><div class="tl-year">'+t.year+'</div><div class="tl-event">'+t.event+'</div></div>').join('')+'</div>':'';
+      const comparisonsHtml=(r.comparisons||[]).filter(c=>c.name).length?
+        '<div class="section-head">⚖️ SIMILAR</div><div class="cmp-wrap">'+(r.comparisons||[]).map(c=>'<div class="cmp-row"><div class="cmp-name">'+c.name+'</div><div class="cmp-diff">'+c.difference+'</div><div class="cmp-price">'+c.price+'</div></div>').join('')+'</div>':'';
+      const expertHtml=r.expert_opinion?'<div class="expert-card"><div class="expert-eye">🎓 EXPERT</div><div class="expert-text">'+r.expert_opinion+'</div></div>':'';
+      const priceHtml=r.price?.value&&r.price.value!=='N/A'?'<div class="price-card"><div class="price-eye">ESTIMATED VALUE</div><div class="price-val">'+r.price.value+'</div><div class="price-note">'+(r.price.note||'')+'</div></div>':'';
+
+      card.innerHTML=
+        '<div class="result-header"><span class="id-badge">✓ AR SCAN</span><span>'+(r.category_emoji||'📦')+' '+(r.category||'')+'</span><span class="conf-badge">'+(r.confidence||'')+'</span></div>'+
+        '<div class="result-body">'+
+          '<div class="result-name">'+(r.name||'Unknown')+'</div>'+
+          '<div class="result-sub">'+(r.subtitle||'')+'</div>'+
+          priceHtml+
+          '<div class="result-desc">'+(r.description||'')+'</div>'+
+          (detsHtml?'<div class="det-grid">'+detsHtml+'</div>':'')+
+          expertHtml+timelineHtml+comparisonsHtml+
+          (r.market_note?'<div class="market-card"><div class="market-eye">📈 MARKET</div><div style="font-size:.8rem;color:var(--text2)">'+r.market_note+'</div></div>':'')+
+          (factsHtml?'<div class="facts-head">🔬 KEY INTELLIGENCE</div>'+factsHtml:'')+
+        '</div>';
+      wrap.style.display='block';
+      wrap.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    if(status){status.textContent='✅ '+( r.name||'Identified')+' — '+( r.confidence||'')+' confidence';status.style.color='var(--green)';}
+  }catch(e){
+    if(status){status.textContent='⚠ Analysis failed — try again';status.style.color='var(--red)';}
+  }finally{
+    _arAnalyzing=false;
+    if(sl)sl.classList.remove('active');
+    if(snapBtn){snapBtn.disabled=false;snapBtn.textContent='⚡ SNAP & ANALYZE';}
+  }
+}
+
+let _arAutoCountdown=0,_arCountdownTimer=null;
+function toggleARauto(){
+  const btn=document.getElementById('ar-auto-btn');
+  const counter=document.getElementById('ar-counter-label');
+  if(_arAutoTimer){
+    clearInterval(_arAutoTimer);_arAutoTimer=null;
+    if(_arCountdownTimer){clearInterval(_arCountdownTimer);_arCountdownTimer=null;}
+    btn.classList.remove('active');btn.textContent='AUTO';
+    if(counter)counter.textContent='';
+  }else{
+    const ms=parseInt(document.getElementById('ar-interval').value)||5000;
+    const secs=ms/1000;
+    btn.classList.add('active');btn.textContent='AUTO ON';
+    _arAutoCountdown=secs;
+    if(counter)counter.textContent='Next: '+_arAutoCountdown+'s';
+    _arCountdownTimer=setInterval(()=>{
+      _arAutoCountdown--;
+      if(counter)counter.textContent='Next: '+_arAutoCountdown+'s';
+      if(_arAutoCountdown<=0)_arAutoCountdown=secs;
+    },1000);
+    _arAutoTimer=setInterval(()=>{
+      if(!_arAnalyzing&&_arRunning)arSnap();
+    },ms);
+  }
+}
+
+function useARresult(){
+  if(!_arLastResult)return;
+  // Transfer AR result to main scanner and switch to scan mode
+  switchMode('scan');
+  // Capture a still from the camera as the "scanned image"
+  const canvas=document.getElementById('ar-canvas');
+  if(canvas&&canvas.width>0){
+    const dataUrl=canvas.toDataURL('image/jpeg',0.9);
+    const img=document.getElementById('preview-img');
+    if(img){img.src=dataUrl;img.style.display='block';}
+    document.getElementById('drop-ph').style.display='none';
+    document.getElementById('tgt').style.display='none';
+    document.getElementById('drop-zone').classList.add('has-image');
+    imgB64=dataUrl.split(',')[1];imgMime='image/jpeg';
+  }
+  renderResult(_arLastResult,false,selCat);
+  window._lastResult=_arLastResult;
+  document.getElementById('results-wrap').style.display='block';
 }
