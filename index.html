@@ -414,7 +414,7 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 
 /* ══ RESULT ACTION BAR ══ */
 #result-action-bar{display:none;padding:0 16px 4px;}
-#result-action-bar.show{display:flex;gap:8px;}
+#result-action-bar.show{display:flex;}
 
 /* ══ HIST SEARCH ══ */
 #hist-search:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,229,255,.08);}
@@ -512,9 +512,15 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   <div id="results-wrap"><div class="result-card" id="result-card"></div>
     <button id="enrich-btn" onclick="enrichResultWithWeb()">🌐 ENRICH WITH LIVE WEB SEARCH</button>
     <!-- RESULT ACTION BAR -->
-    <div id="result-action-bar">
-      <button onclick="saveToCollection()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--cyan);background:rgba(0,229,255,.06);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;cursor:pointer;">📁 SAVE TO COLLECTION</button>
-      <button onclick="shareResult()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--rim);background:var(--card);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;cursor:pointer;">🔗 SHARE</button>
+    <div id="result-action-bar" style="flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveToCollection()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--cyan);background:rgba(0,229,255,.06);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;">📁 SAVE</button>
+        <button onclick="shareResult()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--rim);background:var(--card);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;">🔗 SHARE</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="exportResultPDF()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--violet2);background:rgba(139,92,246,.06);color:var(--violet2);font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;">📄 PDF REPORT</button>
+        <button onclick="shareResultCard()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--green);background:rgba(0,220,150,.06);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;">🖼️ SHARE CARD</button>
+      </div>
     </div>
     <!-- TRANSLATE RESULT -->
     <div class="scan-translate-wrap" id="scan-translate-wrap">
@@ -956,6 +962,8 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('4hU4JT7mCPK4QVVHf');</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.20.0/zxing.min.js"></script>
 <script src="archive-data.js"></script>
 <script>
@@ -1131,4 +1139,5 @@ async function sendContactForm() {
   });
 })();
 </script>
+<canvas id="share-card-canvas" style="display:none;"></canvas>
 </html>
