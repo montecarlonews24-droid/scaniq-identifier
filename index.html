@@ -321,12 +321,6 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .fm-slot-label{font-size:.65rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:6px;}
 .fm-slot-ico{font-size:1.8rem;}
 .fm-slot.loaded{border-style:solid;border-color:var(--violet2);}
-/* ── HIST SEARCH ── */
-#hist-search:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,229,255,.08);}
-/* ── RESULT ACTION BAR ── */
-#result-action-bar{display:none;}
-#result-action-bar.show{display:flex;}
-
 /* ── QR SCANNER ── */
 .qr-wrap{padding:14px 20px;display:none;}
 .qr-wrap.show{display:block;}
@@ -368,6 +362,63 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
 .face-metric-val{font-size:.88rem;font-weight:600;color:var(--text);}
 .face-score-bar{height:3px;background:var(--rim2);border-radius:50px;margin-top:4px;overflow:hidden;}
 .face-score-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--violet),var(--cyan));}
+
+/* ══ TEXT SEARCH BAR ══ */
+.text-search-wrap{padding:0 16px 12px;display:flex;gap:8px;}
+.text-search-wrap input{flex:1;background:var(--card);border:1px solid var(--rim);border-radius:12px;padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;}
+.text-search-wrap input:focus{border-color:var(--cyan);}
+.text-search-wrap button{background:linear-gradient(135deg,rgba(0,229,255,.12),rgba(0,229,255,.05));border:1px solid var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;letter-spacing:.08em;padding:11px 16px;border-radius:12px;cursor:pointer;white-space:nowrap;}
+
+/* ══ SECTION HEADS (Timeline, Comparisons, etc.) ══ */
+.section-head{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;padding:14px 0 6px;border-top:1px solid var(--rim2);margin-top:10px;}
+
+/* ══ TIMELINE ══ */
+.timeline-wrap{display:flex;flex-direction:column;gap:0;}
+.tl-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--rim2);align-items:flex-start;}
+.tl-year{font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;color:var(--violet2);min-width:44px;padding-top:1px;}
+.tl-event{font-size:.8rem;color:var(--text2);line-height:1.5;}
+
+/* ══ COMPARISONS ══ */
+.cmp-wrap{display:flex;flex-direction:column;gap:6px;}
+.cmp-row{background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--rim2);}
+.cmp-name{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:2px;}
+.cmp-diff{font-size:.74rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:3px;}
+.cmp-price{font-size:.78rem;color:var(--cyan);font-weight:600;}
+
+/* ══ WHERE TO BUY ══ */
+.buy-wrap{display:flex;flex-direction:column;gap:6px;}
+.buy-row{background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--rim2);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:4px;}
+.buy-platform{font-size:.82rem;font-weight:600;color:var(--text);}
+.buy-price{font-size:.78rem;color:var(--green);font-weight:700;}
+.buy-note{font-size:.7rem;color:var(--text3);width:100%;font-family:'JetBrains Mono',monospace;}
+
+/* ══ EXPERT OPINION ══ */
+.expert-card{background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(139,92,246,.03));border:1px solid rgba(139,92,246,.25);border-radius:14px;padding:14px;margin:10px 0;}
+.expert-eye{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--violet2);letter-spacing:.18em;margin-bottom:7px;}
+.expert-text{font-size:.82rem;color:var(--text2);line-height:1.7;font-style:italic;}
+
+/* ══ RISK CARD ══ */
+.risk-card{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.03));border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:14px;margin:10px 0;}
+.risk-eye{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--red);letter-spacing:.18em;margin-bottom:7px;}
+.risk-text{font-size:.8rem;color:#fca5a5;line-height:1.6;}
+
+/* ══ WEB ENRICHMENT ══ */
+#web-enrichment{margin-top:10px;padding-top:4px;}
+.enrich-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--rim2);}
+.enrich-label{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text3);}
+.enrich-val{font-size:.78rem;color:var(--cyan);font-weight:600;}
+
+/* ══ ENRICH BUTTON ══ */
+#enrich-btn{width:100%;margin:10px 0 4px;padding:11px;border-radius:11px;border:1px solid var(--violet2);background:rgba(139,92,246,.06);color:var(--violet2);font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:all .2s;}
+#enrich-btn:hover{background:rgba(139,92,246,.12);}
+
+/* ══ RESULT ACTION BAR ══ */
+#result-action-bar{display:none;padding:0 16px 4px;}
+#result-action-bar.show{display:flex;gap:8px;}
+
+/* ══ HIST SEARCH ══ */
+#hist-search:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,229,255,.08);}
+
 </style>
 </head>
 <body>
@@ -414,6 +465,11 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
     <label for="file-input-cam" class="btn btn-ghost">&#128247; Camera</label>
     <button class="btn btn-scan" id="btn-scan" onclick="runScan()" disabled>&#9889;&nbsp; SCAN NOW</button>
   </div>
+  <!-- TEXT SEARCH -->
+  <div class="text-search-wrap">
+    <input id="text-search-inp" type="text" placeholder="🔍  Or type item name to search without photo..." onkeydown="if(event.key==='Enter')runTextSearch()">
+    <button id="text-search-btn" onclick="runTextSearch()">🔍 SEARCH</button>
+  </div>
   <div class="cat-section">
     <div class="sec-label">Category Focus</div>
     <div class="chip-scroll" id="cat-scroll"></div>
@@ -431,8 +487,9 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   </div>
   <div class="err-box" id="err-box"></div>
   <div id="results-wrap"><div class="result-card" id="result-card"></div>
+    <button id="enrich-btn" onclick="enrichResultWithWeb()">🌐 ENRICH WITH LIVE WEB SEARCH</button>
     <!-- RESULT ACTION BAR -->
-    <div id="result-action-bar" style="display:none;padding:0 16px 4px;display:flex;gap:8px;">
+    <div id="result-action-bar">
       <button onclick="saveToCollection()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--cyan);background:rgba(0,229,255,.06);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;cursor:pointer;">📁 SAVE TO COLLECTION</button>
       <button onclick="shareResult()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--rim);background:var(--card);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;cursor:pointer;">🔗 SHARE</button>
     </div>
@@ -686,10 +743,8 @@ header{position:sticky;top:0;z-index:200;padding:13px 20px;display:flex;align-it
   <div class="page-title">HISTORY</div>
   <div class="page-sub">// intelligence archive</div>
   <div style="padding:0 16px 10px;">
-    <div style="position:relative;">
-      <input id="hist-search" type="text" placeholder="🔍  Search scans..." oninput="filterHist(this.value)"
-        style="width:100%;background:var(--card);border:1px solid var(--rim);border-radius:12px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.84rem;outline:none;box-sizing:border-box;">
-    </div>
+    <input id="hist-search" type="text" placeholder="🔍  Search scans..." oninput="filterHist(this.value)"
+      style="width:100%;background:var(--card);border:1px solid var(--rim);border-radius:12px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.84rem;outline:none;box-sizing:border-box;">
   </div>
   <div style="padding:0 16px;" id="full-hist"></div>
 </div>
