@@ -91,7 +91,7 @@ CATS.forEach(c=>mkChip(c.key,c.e,c.n));
 function buildPrompt(cat){
   const arc=getArchive(cat);
   const info=CATS.find(c=>c.key===cat);
-  const ctx=info?'Category: "'+info.n+'"':\'Auto-detect category\';
+  const ctx=info?'Category: "'+info.n+'"':'Auto-detect category';
   const dims=arc.dims;
   const needsLive=arc.live;
   const srcInstr=arc.sources.map(s=>'- '+s.name+' ('+s.url+'): '+s.info).join('\n');
@@ -277,6 +277,8 @@ function renderResult(r,isLive,cat){
     '</div>';
   document.getElementById('results-wrap').style.display='block';
   document.getElementById('results-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  const _rab=document.getElementById('result-action-bar');if(_rab)_rab.classList.add('show');
+  window._lastResult=r;
   // Build clean translate text from structured result data (avoids JSON bleed)
   if(typeof window._scanRawText!=='undefined'){
     const _p=[];
@@ -807,6 +809,13 @@ async function decodeQR(){
     if(isEmail)acts+=`<button class="qr-act-btn" onclick="window.open('mailto:${decoded.replace('mailto:','')}')">✉️ Email</button>`;
     if(isPhone)acts+=`<button class="qr-act-btn" onclick="window.open('tel:${decoded.replace('tel:','')}')">📞 Call</button>`;
     document.getElementById('qr-actions').innerHTML=acts;
+    // Add "Scan with SCANIQ" button for product barcodes
+    const isProduct=/^[0-9]{8,14}$/.test(decoded.trim());
+    if(isProduct||!isURL){
+      const safeBarcode=decoded.replace(/'/g,"\'");
+      acts+=`<button class="qr-act-btn" style="border-color:var(--cyan);color:var(--cyan)" onclick="scanBarcodeWithSCANIQ('${safeBarcode}')">🔍 SCAN WITH SCANIQ</button>`;
+    }
+    document.getElementById('qr-actions').innerHTML=acts;
     document.getElementById('qr-result').classList.add('show');
   }catch(err){
     document.getElementById('btn-qr').disabled=false;
@@ -846,6 +855,70 @@ function openCollection(i){
   if(c.items.find(x=>x.id===item.id)){alert('Already in this collection.');return;}
   c.items.unshift({id:item.id,thumb:item.thumb,name:item.result?.name||'Scan',ts:item.ts});
   saveColl();renderCollections();alert(`Added to "${c.name}" ✅`);
+}
+
+/* ===== HISTORY SEARCH ===== */
+function filterHist(q){
+  const g=document.getElementById('full-hist');
+  if(!hist.length)return;
+  const term=q.toLowerCase().trim();
+  const filtered=term?hist.filter(h=>(h.result?.name||'').toLowerCase().includes(term)||(h.result?.category||'').toLowerCase().includes(term)):hist;
+  if(!filtered.length){g.innerHTML='<div style="padding:32px 0;text-align:center;color:var(--text3);font-family:JetBrains Mono,monospace;font-size:.76rem">// NO RESULTS</div>';return;}
+  g.innerHTML='<div style="display:flex;flex-direction:column;gap:7px;padding-bottom:20px;">'+filtered.map(h=>histHtml(h,true)).join('')+'</div>';
+}
+
+/* ===== SAVE TO COLLECTION FROM RESULT ===== */
+function saveToCollection(){
+  if(!window._lastResult){alert('No scan result to save.');return;}
+  if(!collections.length){
+    const name=prompt('No collections yet. Enter name for new collection:');
+    if(!name||!name.trim())return;
+    const icons=['📁','⭐','🔬','💎','🎨','🌿','🚗','🏆','📚','🧬'];
+    collections.push({name:name.trim(),icon:icons[Math.floor(Math.random()*icons.length)],items:[],created:Date.now()});
+    saveColl();
+  }
+  const opts=collections.map((c,i)=>`${i+1}. ${c.icon} ${c.name} (${c.items.length} items)`).join('\n');
+  const choice=prompt('Save to collection:\n\n'+opts+'\n\nEnter number:');
+  const n=parseInt(choice);if(isNaN(n)||n<1||n>collections.length)return;
+  const c=collections[n-1];
+  const thumb=document.getElementById('preview-img')?.src||'';
+  const id=Date.now();
+  if(c.items.find(x=>x.name===window._lastResult.name)){alert('Already saved.');return;}
+  c.items.unshift({id,thumb,name:window._lastResult.name||'Scan',ts:new Date().toISOString()});
+  saveColl();
+  const btn=document.querySelector('#result-action-bar button');
+  if(btn){const orig=btn.textContent;btn.textContent='✅ SAVED!';setTimeout(()=>btn.textContent=orig,2000);}
+}
+
+/* ===== SHARE RESULT ===== */
+function shareResult(){
+  if(!window._lastResult){return;}
+  const r=window._lastResult;
+  const text=`🔍 SCANIQ RESULT\n\n${r.category_emoji||'📦'} ${r.name||'Unknown'}\n${r.subtitle||''}\n\n${r.description||''}\n\nPrice: ${r.price?.value||'N/A'}\nValue: ${r.overall_verdict||''}\n\nScanned with SCANIQ`;
+  if(navigator.share){navigator.share({title:'SCANIQ — '+r.name,text}).catch(()=>{});}
+  else{navigator.clipboard.writeText(text).then(()=>alert('Result copied to clipboard! ✅')).catch(()=>alert('Could not share.'));}
+}
+
+/* ===== QR → SCANIQ SCAN ===== */
+function scanBarcodeWithSCANIQ(barcode){
+  // Switch to scanner tab with barcode as context
+  sp('scan',document.querySelector('.nav-btn'));
+  // Pre-fill a text scan using the barcode number
+  const img=document.getElementById('preview-img');
+  const qrImg=document.getElementById('prev-qr');
+  if(qrImg&&qrImg.src&&qrImg.src!==window.location.href){
+    img.src=qrImg.src;img.style.display='block';
+    document.getElementById('drop-ph').style.display='none';
+    document.getElementById('tgt').style.display='none';
+    document.getElementById('drop-zone').classList.add('has-image');
+    document.getElementById('btn-scan').disabled=false;
+    imgB64=qrImg.src.split(',')[1]||null;
+    imgMime='image/jpeg';
+  }
+  // Show barcode context
+  const bar=document.getElementById('result-action-bar');if(bar)bar.classList.remove('show');
+  window._barcodeContext=barcode;
+  alert('Image loaded. Tap SCAN NOW — SCANIQ will analyze the product with barcode: '+barcode);
 }
 
 /* ===== HELPER ===== */
