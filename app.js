@@ -382,7 +382,7 @@ renderRecentHist();
 /* ===== MODE SWITCHING ===== */
 function switchMode(m){
   if(m!=='ar')stopAR();
-  ['scan','face','facematch','auth','nutri','ocr','qr','ar'].forEach(id=>{
+  ['scan','face','facematch','auth','nutri','ocr','qr','ar','batch','compare'].forEach(id=>{
     const el=document.getElementById('mode-'+id);if(el)el.style.display=(id===m)?'block':'none';
     const t=document.getElementById('tab-'+id);if(t)t.classList.toggle('active',id===m);
   });
@@ -1272,4 +1272,191 @@ function useARresult(){
   renderResult(_arLastResult,false,selCat);
   window._lastResult=_arLastResult;
   document.getElementById('results-wrap').style.display='block';
+}
+
+
+/* ══════════════════════════════════════════════════
+   BATCH SCAN ENGINE
+══════════════════════════════════════════════════ */
+let _batchImgs=[]; // {b64, mime, dataUrl, result}
+
+document.getElementById('fi-batch')?.addEventListener('change',e=>{addBatchImages(e.target.files);e.target.value='';});
+document.getElementById('fi-batch-cam')?.addEventListener('change',e=>{addBatchImages(e.target.files);e.target.value='';});
+
+function addBatchImages(files){
+  const remaining=5-_batchImgs.length;
+  const toAdd=Array.from(files).slice(0,remaining);
+  let loaded=0;
+  toAdd.forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      _batchImgs.push({b64:ev.target.result.split(',')[1],mime:f.type||'image/jpeg',dataUrl:ev.target.result,result:null});
+      loaded++;
+      if(loaded===toAdd.length)renderBatchGrid();
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function renderBatchGrid(){
+  const grid=document.getElementById('batch-grid');
+  grid.innerHTML=_batchImgs.map((img,i)=>
+    '<div class="batch-cell"><img src="'+img.dataUrl+'"><button class="batch-del" onclick="removeBatchImg('+i+')">✕</button>'+
+    (img.result?'<div class="batch-status" style="color:var(--green)">✓ '+(img.result.name||'Done').substring(0,14)+'</div>':'')+
+    '</div>'
+  ).join('');
+  if(_batchImgs.length<5){
+    grid.innerHTML+='<div class="batch-add" onclick="document.getElementById(\'fi-batch\').click()">➕</div>';
+  }
+  document.getElementById('btn-batch').disabled=_batchImgs.length===0;
+}
+
+function removeBatchImg(i){_batchImgs.splice(i,1);renderBatchGrid();document.getElementById('batch-results').innerHTML='';}
+
+async function runBatchScan(){
+  if(!_batchImgs.length)return;
+  const btn=document.getElementById('btn-batch');
+  const loading=document.getElementById('batch-loading');
+  btn.disabled=true;loading.style.display='block';
+  showErrBox('err-batch','');
+  document.getElementById('batch-results').innerHTML='';
+  const arc=getArchive(selCat);
+  const dims=arc.dims;
+  const dimBlock=dims.map(d=>'"'+d+'":{"score":0,"note":"","archive_ref":""}').join(',');
+  const compactPrompt='You are SCANIQ. Identify this item. Return PURE JSON ONLY:\n'+
+    '{"name":"","subtitle":"","category":"","category_emoji":"","confidence":"High|Medium|Low",'+
+    '"price":{"value":"","unit":"","note":"","is_live_needed":false},'+
+    '"description":"4-5 expert sentences",'+
+    '"details":[{"label":"Classification","value":""},{"label":"Origin","value":""},{"label":"Material","value":""}],'+
+    '"value_matrix":{'+dimBlock+'},"overall_value_score":0,"overall_verdict":"","overall_explanation":"",'+
+    '"facts":["fact 1 with data","fact 2","fact 3","fact 4"]}';
+
+  for(let i=0;i<_batchImgs.length;i++){
+    document.getElementById('batch-lt').textContent='SCANNING '+(i+1)+' / '+_batchImgs.length;
+    const img=_batchImgs[i];
+    try{
+      const body={model:'claude-sonnet-4-6',max_tokens:1800,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:img.mime,data:img.b64}},
+        {type:'text',text:compactPrompt}
+      ]}]};
+      const resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await resp.json();
+      let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+      const clean=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').trim();
+      const m=clean.match(/\{[\s\S]*\}/);
+      img.result=m?JSON.parse(m[0]):null;
+    }catch(e){img.result=null;}
+    renderBatchGrid();
+    renderBatchResults();
+  }
+  loading.style.display='none';
+  btn.disabled=false;
+  // Save each to history
+  _batchImgs.forEach(img=>{
+    if(img.result&&document.getElementById('t-hist').classList.contains('on')){
+      hist.unshift({id:Date.now()+Math.random(),thumb:img.dataUrl,result:img.result,ts:new Date().toISOString(),cat:selCat});
+    }
+  });
+  if(hist.length>20)hist=hist.slice(0,20);
+  try{localStorage.setItem('sq4_hist',JSON.stringify(hist));}catch{}
+  renderRecentHist();
+}
+
+function renderBatchResults(){
+  const wrap=document.getElementById('batch-results');
+  wrap.innerHTML=_batchImgs.filter(i=>i.result).map((img,idx)=>{
+    const r=img.result;
+    return '<div class="batch-result-item"><img src="'+img.dataUrl+'"><div style="flex:1;min-width:0">'+
+      '<div style="font-weight:700;font-size:.86rem;color:var(--text)">'+(r.category_emoji||'📦')+' '+(r.name||'Unknown')+'</div>'+
+      '<div style="font-size:.72rem;color:var(--text3);font-family:JetBrains Mono,monospace;margin:2px 0">'+(r.category||'')+' · '+(r.confidence||'')+'</div>'+
+      (r.price?.value&&r.price.value!=='N/A'?'<div style="font-size:.8rem;color:var(--green);font-weight:600">'+r.price.value+'</div>':'')+
+      '<div style="font-size:.72rem;color:var(--text2);line-height:1.5;margin-top:3px">'+(r.description||'').substring(0,110)+'...</div>'+
+      '</div></div>';
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════
+   COMPARE ENGINE (Scan vs Scan)
+══════════════════════════════════════════════════ */
+let _cmpA=null,_cmpB=null; // {b64, mime, dataUrl}
+
+document.getElementById('fi-cmp-a')?.addEventListener('change',e=>{if(e.target.files[0])loadCmpImg(e.target.files[0],'a');e.target.value='';});
+document.getElementById('fi-cmp-b')?.addEventListener('change',e=>{if(e.target.files[0])loadCmpImg(e.target.files[0],'b');e.target.value='';});
+
+function loadCmpImg(f,slot){
+  const r=new FileReader();
+  r.onload=ev=>{
+    const obj={b64:ev.target.result.split(',')[1],mime:f.type||'image/jpeg',dataUrl:ev.target.result};
+    if(slot==='a')_cmpA=obj;else _cmpB=obj;
+    const prev=document.getElementById('cmp-prev-'+slot);
+    const ph=document.getElementById('cmp-ph-'+slot);
+    prev.src=ev.target.result;prev.style.display='block';ph.style.display='none';
+    document.getElementById('btn-compare').disabled=!(_cmpA&&_cmpB);
+  };
+  r.readAsDataURL(f);
+}
+
+async function runCompare(){
+  if(!_cmpA||!_cmpB)return;
+  const btn=document.getElementById('btn-compare');
+  const loading=document.getElementById('compare-loading');
+  btn.disabled=true;loading.style.display='block';
+  showErrBox('err-compare','');
+  document.getElementById('compare-result').innerHTML='';
+  const prompt='You are SCANIQ COMPARE. Two items are shown (Image 1 = Item A, Image 2 = Item B). '+
+    'Analyze BOTH and determine which is the better value/quality/choice. Return PURE JSON ONLY:\n'+
+    '{"item_a":{"name":"","category":"","price":"","value_score":0,"key_strength":"","key_weakness":""},'+
+    '"item_b":{"name":"","category":"","price":"","value_score":0,"key_strength":"","key_weakness":""},'+
+    '"winner":"A|B|Tie","winner_reason":"2-3 sentences explaining which wins and why",'+
+    '"comparison_points":[{"aspect":"e.g. Value","a_rating":"","b_rating":"","note":""},{"aspect":"Quality","a_rating":"","b_rating":"","note":""},{"aspect":"Rarity","a_rating":"","b_rating":"","note":""}],'+
+    '"recommendation":"which to buy/keep and for whom","value_scores":{"a":0,"b":0}}';
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:2500,messages:[{role:'user',content:[
+      {type:'text',text:'Item A (first image):'},
+      {type:'image',source:{type:'base64',media_type:_cmpA.mime,data:_cmpA.b64}},
+      {type:'text',text:'Item B (second image):'},
+      {type:'image',source:{type:'base64',media_type:_cmpB.mime,data:_cmpB.b64}},
+      {type:'text',text:prompt}
+    ]}]};
+    const resp=await fetch(API_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    let raw='';for(const b of(data.content||[])){if(b.type==='text')raw+=b.text;}
+    const clean=raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').trim();
+    const m=clean.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON');
+    const r=JSON.parse(m[0]);
+    loading.style.display='none';btn.disabled=false;
+    renderCompareResult(r);
+  }catch(e){
+    loading.style.display='none';btn.disabled=false;
+    showErrBox('err-compare','Compare failed: '+e.message);
+  }
+}
+
+function renderCompareResult(r){
+  const wrap=document.getElementById('compare-result');
+  const winner=r.winner||'Tie';
+  const winnerName=winner==='A'?(r.item_a?.name||'Item A'):winner==='B'?(r.item_b?.name||'Item B'):'Tie';
+  const sa=parseInt(r.value_scores?.a??r.item_a?.value_score)||0;
+  const sb=parseInt(r.value_scores?.b??r.item_b?.value_score)||0;
+  const pointsHtml=(r.comparison_points||[]).map(p=>
+    '<div style="border-top:1px solid var(--rim2);padding:8px 0"><div style="font-family:JetBrains Mono,monospace;font-size:.62rem;color:var(--cyan);letter-spacing:.15em;margin-bottom:4px">'+(p.aspect||'').toUpperCase()+'</div>'+
+    '<div style="display:flex;gap:10px;font-size:.76rem"><div style="flex:1"><span style="color:var(--text3)">A:</span> <span style="color:var(--text2)">'+(p.a_rating||'—')+'</span></div>'+
+    '<div style="flex:1"><span style="color:var(--text3)">B:</span> <span style="color:var(--text2)">'+(p.b_rating||'—')+'</span></div></div>'+
+    (p.note?'<div style="font-size:.68rem;color:var(--text3);margin-top:3px">'+p.note+'</div>':'')+'</div>'
+  ).join('');
+
+  wrap.innerHTML=
+    '<div class="cmp-winner"><div style="font-family:JetBrains Mono,monospace;font-size:.62rem;color:var(--green);letter-spacing:.2em;margin-bottom:5px">🏆 WINNER</div>'+
+    '<div style="font-family:Orbitron,monospace;font-size:1.1rem;font-weight:900;color:var(--green)">'+(winner==='Tie'?'IT\'S A TIE':winnerName)+'</div>'+
+    '<div style="font-size:.78rem;color:var(--text2);margin-top:6px;line-height:1.6">'+(r.winner_reason||'')+'</div></div>'+
+    // Score bars
+    '<div class="cmp-verdict-card"><div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:.76rem"><span style="color:'+(winner==='A'?'var(--green)':'var(--text2)')+'">🅰️ '+(r.item_a?.name||'Item A')+'</span><span style="font-weight:700;color:var(--cyan)">'+sa+'/100</span></div>'+
+    '<div style="background:var(--card2);border-radius:6px;height:8px;overflow:hidden;margin-bottom:12px"><div style="width:'+sa+'%;height:100%;background:'+(winner==='A'?'var(--green)':'var(--cyan)')+'"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:.76rem"><span style="color:'+(winner==='B'?'var(--green)':'var(--text2)')+'">🅱️ '+(r.item_b?.name||'Item B')+'</span><span style="font-weight:700;color:var(--cyan)">'+sb+'/100</span></div>'+
+    '<div style="background:var(--card2);border-radius:6px;height:8px;overflow:hidden"><div style="width:'+sb+'%;height:100%;background:'+(winner==='B'?'var(--green)':'var(--cyan)')+'"></div></div></div>'+
+    // Detail comparison
+    '<div class="cmp-verdict-card">'+pointsHtml+'</div>'+
+    // Recommendation
+    (r.recommendation?'<div class="expert-card"><div class="expert-eye">💡 RECOMMENDATION</div><div class="expert-text" style="font-style:normal">'+r.recommendation+'</div></div>':'');
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
 }
